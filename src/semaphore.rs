@@ -63,8 +63,9 @@ impl Semaphore {
                 return;
             }
             // a small hack to force some cpu cycles to pass before the next try
+            // may be a timer wait in the future?
             for _ in 0..1000 {
-                unsafe { asm!("nop") };//::::"volatile") };
+                unsafe { asm!("nop") };
             }
         }
     }
