@@ -1,0 +1,17 @@
+[package]
+name = "ruspiro-lock"
+authors = ["Andé Borrmann <pspwizard@gmx.de>"]
+version = "0.0.1" # remember to update html_root_url
+description = ""
+license = "LICENSE"
+repository = "https://github.com/RusPiRo/ruspiro-lock.git"
+readme = "README.md"
+keywords = ["ruspiro"]
+categories = ["no_std"]
+edition = "2018"
+
+[lib]
+
+[dependencies]
+
+[features]
