@@ -8,7 +8,7 @@
 #![no_std]
 #![feature(asm)]
 
-//! # Atomic locks for Raspberry Pi baremetal
+//! # Atomic locks for Raspberry Pi baremetal systems
 //! This crate provides two options of locks. [Spinlock] and [Semaphore]. They provide mechanisms to secure cross core
 //! access to shared data like MMIO registers of peripherals. As the locks depend on low level atomics they do only work
 //! on the Raspberry Pi if the MMU is properly configured. Otherwise using either of the lock functions will hang the 

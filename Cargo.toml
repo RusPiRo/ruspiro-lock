@@ -1,12 +1,12 @@
 [package]
 name = "ruspiro-lock"
-authors = ["Andé Borrmann <pspwizard@gmx.de>"]
+authors = ["André Borrmann <pspwizard@gmx.de>"]
 version = "0.0.1" # remember to update html_root_url
 description = ""
 license = "LICENSE"
-repository = "https://github.com/RusPiRo/ruspiro-lock.git"
+repository = "https://github.com/RusPiRo/ruspiro-lock/tree/v0.0.1"
 readme = "README.md"
-keywords = ["ruspiro"]
+keywords = ["ruspiro", "spinlock", "semaphore", "raspberry-pi"]
 categories = ["no_std"]
 edition = "2018"
 
