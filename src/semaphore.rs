@@ -9,6 +9,17 @@
 //! or updating it's value. On Raspbarry Pi this will only work if the MMU has been properly configured. Otherwise those
 //! operations may just hang.
 //! 
+//! # Example
+//! ```
+//! static SEMA: Semaphore = Semaphore::new(1);
+//! 
+//! fn main () {
+//!     SEMA.down(); // will only return if the counter could be decreased
+//!     // do something
+//! 
+//!     SEMA.up(); // increase the counter for another usage
+//! }
+//! ```
 
 use core::sync::atomic::{AtomicBool, Ordering, fence};
 
@@ -48,7 +59,7 @@ impl Semaphore {
     }
 
     /// decrease the inner count of a semaphore. This blocks the current core if the current count is 0
-    /// and could not beeing decreased. For an unblocking operation use [try_down]
+    /// and could not beeing decreased. For an unblocking operation use [Semaphore::try_down]
     /// 
     /// # Example
     /// ```
@@ -80,7 +91,7 @@ impl Semaphore {
     ///     // do something... the counter of the semaphore has been decreased by 1
     /// }
     /// ```
-    pub fn try_down(&mut self) -> Result<(),()> {
+    pub fn try_down(&mut self) -> Result<(), &'static str> {
         while self.flag.compare_and_swap(false, true, Ordering::Relaxed) != false { }
         fence(Ordering::Acquire);
         // try to decrease the counter
@@ -95,7 +106,7 @@ impl Semaphore {
         if success {
             Ok(())
         } else {
-            Err(())
+            Err("unable to use the semaphore, counter is less than 1")
         }
     }
 }

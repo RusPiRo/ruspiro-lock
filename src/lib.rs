@@ -4,7 +4,7 @@
  * Author: André Borrmann 
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.0.1")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.0.2")]
 #![no_std]
 #![feature(asm)]
 
@@ -14,7 +14,7 @@
 //! on the Raspberry Pi if the MMU is properly configured. Otherwise using either of the lock functions will hang the 
 //! core it has been used on.
 //! 
-//! # Example
+//! # Usage
 //! Using a Spinlock to ensure exclusive access.
 //! ```
 //! use ruspiro_lock::*;

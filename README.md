@@ -7,7 +7,7 @@ This crates provide two simple abstractions on low level atomic locks. The ``Spi
 To use this crate simply add the dependency to your ``Cargo.toml`` file:
 ```
 [dependencies]
-ruspiro-lock = { git = "https://github.com/RusPiRo/ruspiro-lock", tag = "v0.0.1" }
+ruspiro-lock = "0.0.2"
 ```
 
 Once done the definition and usage of the locks is as follows:

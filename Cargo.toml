@@ -1,13 +1,14 @@
 [package]
 name = "ruspiro-lock"
 authors = ["André Borrmann <pspwizard@gmx.de>"]
-version = "0.0.1" # remember to update html_root_url
-description = ""
+version = "0.0.2" # remember to update html_root_url
+description = "This crates provide 2 simple atomic locks to be used to ensure safe atomic access to data. This is Spinlock and Semaphore"
 license = "Apache-2.0"
-repository = "https://github.com/RusPiRo/ruspiro-lock/tree/v0.0.1"
+repository = "https://github.com/RusPiRo/ruspiro-lock/tree/v0.0.2"
+documentation = "https://docs.rs/ruspiro-lock/0.0.2"
 readme = "README.md"
-keywords = ["ruspiro", "spinlock", "semaphore", "raspberry-pi"]
-categories = ["no_std"]
+keywords = ["RusPiRo", "spinlock", "semaphore", "raspberrypi"]
+categories = ["no-std", "embedded"]
 edition = "2018"
 
 [lib]
