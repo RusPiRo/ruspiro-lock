@@ -2,12 +2,17 @@
 
 This crates provide two simple abstractions on low level atomic locks. The ``Spinlock`` and the ``Semaphore``.
 
+[![Travis-CI Status](https://api.travis-ci.org/RusPiRo/ruspiro-lock.svg?branch=master)](https://travis-ci.org/RusPiRo/ruspiro-lock)
+[![Latest Version](https://img.shields.io/crates/v/ruspiro-lock.svg)](https://crates.io/crates/ruspiro-lock)
+[![Documentation](https://docs.rs/ruspiro-lock/badge.svg)](https://docs.rs/ruspiro-lock)
+[![License](https://img.shields.io/crates/l/ruspiro-lock.svg)](https://github.com/RusPiRo/ruspiro-lock#license)
+
 # Usage
 
 To use this crate simply add the dependency to your ``Cargo.toml`` file:
 ```
 [dependencies]
-ruspiro-lock = "0.0.2"
+ruspiro-lock = "0.1.0"
 ```
 
 Once done the definition and usage of the locks is as follows:
