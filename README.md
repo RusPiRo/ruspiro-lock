@@ -1,6 +1,9 @@
 # RusPiRo Lock crate
 
-This crates provide two simple abstractions on low level atomic locks. The ``Spinlock`` and the ``Semaphore``.
+Simple to use abstractions on low level atomic locks:
+ - ``Spinlock``: blocking lock to secure cross core mutual exclusive access (requires a configured MMU on Raspberry Pi)
+ - ``Semaphore``: counting blocking or nonblocking lock to secure cross core exclusive access
+ - ``DataLock``: data container guarded by a nonblocking atomic lock to secure cross core mutual exclusive access
 
 [![Travis-CI Status](https://api.travis-ci.org/RusPiRo/ruspiro-lock.svg?branch=master)](https://travis-ci.org/RusPiRo/ruspiro-lock)
 [![Latest Version](https://img.shields.io/crates/v/ruspiro-lock.svg)](https://crates.io/crates/ruspiro-lock)
@@ -12,7 +15,7 @@ This crates provide two simple abstractions on low level atomic locks. The ``Spi
 To use this crate simply add the dependency to your ``Cargo.toml`` file:
 ```
 [dependencies]
-ruspiro-lock = "0.1.0"
+ruspiro-lock = "0.2"
 ```
 
 Once done the definition and usage of the locks is as follows:
@@ -47,6 +50,27 @@ fn main() {
     }
 }
 ```
+
+Using data container with atmic lock guard:
+```
+use ruspiro_lock::*;
+
+static DATA: DataLock<u32> = DataLock::new(0);
+
+fn main() {
+    if let Some(mut data) = DATA.try_lock() {
+        *data = 20;
+    }
+    // once the data goes ot of scope the lock will be released
+    if let Some(data) = DATA.try_lock() {
+        println!("data: {}", *data);
+    
+        // another lock should fail inside this scope
+        assert_eq!(DATA.try_lock(), None);
+    }
+}
+```
+
 
 ## License
 Licensed under Apache License, Version 2.0, ([LICENSE](LICENSE) or http://www.apache.org/licenses/LICENSE-2.0)

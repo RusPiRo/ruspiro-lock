@@ -20,12 +20,13 @@
 //!     SEMA.up(); // increase the counter for another usage
 //! }
 //! ```
-
 use core::sync::atomic::{AtomicBool, Ordering, fence};
+use core::cell::Cell;
 
+#[derive(Debug)]
 pub struct Semaphore {
     flag: AtomicBool,
-    count: u32
+    count: Cell<u32>,
 }
 
 impl Semaphore {
@@ -37,7 +38,7 @@ impl Semaphore {
     pub const fn new(initial: u32) -> Semaphore {
         Semaphore {
             flag: AtomicBool::new(false),
-            count: initial,
+            count: Cell::new(initial),
         }
     }
 
@@ -49,13 +50,19 @@ impl Semaphore {
     /// 
     /// sema.up(); // the counter of the semaphore will be increased
     /// ```
-    pub fn up(&mut self) {
+    pub fn up(&self) {
         // ensure atomic access to the count value so it is not updated from other cores while updating
+        // we need to deactivate interrupts as this wait should never beeing interrupted
+        // otherwise it could lead to deadlocks
+        crate::disable_interrupts();
         while self.flag.compare_and_swap(false, true, Ordering::Relaxed) != false { }
         fence(Ordering::Acquire);
-        self.count += 1;
+                
+        let c = self.count.get();
+        self.count.set(c + 1);
         // release the atomic access
         self.flag.store(false, Ordering::Release);
+        crate::re_enable_interrupts();
     }
 
     /// decrease the inner count of a semaphore. This blocks the current core if the current count is 0
@@ -63,19 +70,19 @@ impl Semaphore {
     /// 
     /// # Example
     /// ```
-    /// let mut sema = Semaphore::new(0);
+    /// let sema = Semaphore::new(0);
     /// 
     /// sema.down();
     /// // if we reache this line, we have used the semaphore and decreased the counter by 1
     /// ```
-    pub fn down(&mut self) {
+    pub fn down(&self) {
         loop {
             if self.try_down().is_ok() {
                 return;
             }
             // a small hack to force some cpu cycles to pass before the next try
             // may be a timer wait in the future?
-            for _ in 0..1000 {
+            for _ in 0..100 {
                 unsafe { asm!("nop") };
             }
         }
@@ -85,24 +92,31 @@ impl Semaphore {
     /// 
     /// # Example
     /// ```
-    /// let mut sema = Semaphore::new(0);
+    /// let sema = Semaphore::new(0);
     /// 
     /// if sema.try_down().is_ok() {
     ///     // do something... the counter of the semaphore has been decreased by 1
     /// }
     /// ```
-    pub fn try_down(&mut self) -> Result<(), &'static str> {
+    pub fn try_down(&self) -> Result<(), &'static str> {
+        // we need to deactivate interrupts as this wait should never beeing interrupted
+        // otherwise it could lead to deadlocks
+        crate::disable_interrupts();
         while self.flag.compare_and_swap(false, true, Ordering::Relaxed) != false { }
         fence(Ordering::Acquire);
+        
         // try to decrease the counter
-        let success = if self.count > 0 {
-            self.count -= 1;
+        let c = self.count.get();
+        let success = if c > 0 {
+            self.count.set(c - 1);
             true
         } else {
             false
         };
         // release the atomic access
         self.flag.store(false, Ordering::Release);
+        crate::re_enable_interrupts();
+                
         if success {
             Ok(())
         } else {

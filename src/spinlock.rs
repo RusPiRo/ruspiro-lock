@@ -24,6 +24,7 @@
 //! ```
 use core::sync::atomic::{AtomicBool, Ordering, fence};
 
+#[derive(Debug)]
 pub struct Spinlock {
     flag: AtomicBool,
 }
@@ -43,12 +44,20 @@ impl Spinlock {
     pub fn aquire(&self) {
         // set the atomic value to true if it has been false before
         // it returns "false" (the old value) if the value could be changed to true
+        // we need to deactivate interrupts as this wait should never beeing interrupted
+        // otherwise it could lead to deadlocks
+        crate::disable_interrupts();
         while self.flag.compare_and_swap(false, true, Ordering::Relaxed) != false { }
         // the fence ensures propper ordering with the unlock call
         fence(Ordering::Acquire);
+        crate::re_enable_interrupts();
     }
 
     pub fn release(&self) {
+        // we need to deactivate interrupts as this atomic operation should never beeing interrupted
+        // otherwise it could lead to deadlocks
+        crate::disable_interrupts();
         self.flag.store(false, Ordering::Release);
+        crate::re_enable_interrupts();
     }
 }
