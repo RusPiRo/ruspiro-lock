@@ -4,7 +4,7 @@
  * Author: André Borrmann 
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.1.0")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.2.0")]
 #![no_std]
 #![feature(asm)]
 
@@ -31,7 +31,7 @@
 //! }
 //! ```
 //! 
-//! using a Semaphore to specify how often specific access is valid
+//! Using a Semaphore to specify how often specific access is valid.
 //! 
 //! ```
 //! use ruspriro_lock::*;
@@ -49,9 +49,38 @@
 //! }
 //! ```
 //! 
+//! Using data container with atmic lock guard.
+//! ```
+//! use ruspiro_lock::*;
+//! 
+//! static DATA: DataLock<u32> = DataLock::new(0);
+//! 
+//! fn main() {
+//!     if let Some(mut data) = DATA.try_lock() {
+//!         *data = 20;
+//!     }
+//!     // once the data goes ot of scope the lock will be released
+//!     if let Some(data) = DATA.try_lock() {
+//!         println!("data: {}", *data);
+//!     
+//!         // another lock should fail inside this scope
+//!         assert_eq!(DATA.try_lock(), None);
+//!     }
+//! }
+//! ```
+//! 
 
+
+// re-export the spinlock
 pub mod spinlock;
-pub use self::spinlock::*;
+pub use spinlock::*;
 
+// re-export the semaphore
 pub mod semaphore;
-pub use self::semaphore::*;
+pub use semaphore::*;
+
+// re-export the data-lock
+pub mod datalock;
+pub use datalock::*;
+
+use ruspiro_interrupt_core::*;
