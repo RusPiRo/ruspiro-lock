@@ -22,7 +22,7 @@
 //!     LOCK.release(); // releasing the lock
 //! }
 //! ```
-use core::sync::atomic::{AtomicBool, Ordering, fence};
+use core::sync::atomic::{AtomicBool, Ordering};
 
 #[derive(Debug)]
 pub struct Spinlock {
@@ -42,22 +42,17 @@ impl Spinlock {
     }
 
     pub fn aquire(&self) {
-        // set the atomic value to true if it has been false before
-        // it returns "false" (the old value) if the value could be changed to true
-        // we need to deactivate interrupts as this wait should never beeing interrupted
+        // set the atomic value to true if it has been false before (set the lock)
+        // we need to deactivate interrupts as this wait and the aquired lock should never beeing interrupted
         // otherwise it could lead to deadlocks
         crate::disable_interrupts();
-        while self.flag.compare_and_swap(false, true, Ordering::Relaxed) != false { }
-        // the fence ensures propper ordering with the unlock call
-        fence(Ordering::Acquire);
-        crate::re_enable_interrupts();
+        while self.flag.compare_and_swap(false, true, Ordering::SeqCst) != false { }
     }
 
     pub fn release(&self) {
-        // we need to deactivate interrupts as this atomic operation should never beeing interrupted
-        // otherwise it could lead to deadlocks
-        crate::disable_interrupts();
-        self.flag.store(false, Ordering::Release);
+        self.flag.store(false, Ordering::SeqCst);
+        // re-activate interrupts to the previous enable-state as the lock is now released
+        // and no interrupt deadlocks can occur
         crate::re_enable_interrupts();
     }
 }
