@@ -22,7 +22,7 @@
 //!     LOCK.release(); // releasing the lock
 //! }
 //! ```
-use core::sync::atomic::{AtomicBool, Ordering, fence};
+use core::sync::atomic::{AtomicBool, Ordering};
 
 #[derive(Debug)]
 pub struct Spinlock {
