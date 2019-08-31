@@ -2,8 +2,8 @@
 
 Simple to use abstractions on low level atomic locks:
  - ``Spinlock``: blocking lock to secure cross core mutual exclusive access (requires a configured MMU on Raspberry Pi)
- - ``Semaphore``: counting blocking or nonblocking lock to secure cross core exclusive access
- - ``DataLock``: data container guarded by a nonblocking atomic lock to secure cross core mutual exclusive access
+ - ``Semaphore``: counting blocking or non-blocking lock to secure cross core exclusive access
+ - ``DataLock``: data container guarded by a non-blocking atomic lock to secure cross core mutual exclusive access
 
 [![Travis-CI Status](https://api.travis-ci.org/RusPiRo/ruspiro-lock.svg?branch=master)](https://travis-ci.org/RusPiRo/ruspiro-lock)
 [![Latest Version](https://img.shields.io/crates/v/ruspiro-lock.svg)](https://crates.io/crates/ruspiro-lock)

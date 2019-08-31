@@ -4,16 +4,16 @@
  * Author: André Borrmann 
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.2.1")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.2.2")]
 #![no_std]
 #![feature(asm)]
 
 //! # Atomic locks for Raspberry Pi baremetal systems
 //! 
-//! This crate provides two options of locks. [Spinlock] and [Semaphore]. They provide mechanisms to secure cross core
-//! access to shared data like MMIO registers of peripherals. As the locks depend on low level atomics they do only work
-//! on the Raspberry Pi if the MMU is properly configured. Otherwise using either of the lock functions will hang the 
-//! core it has been used on.
+//! This crate provides two options of locks and a data access guard. [Spinlock], [Semaphore], [Datalock].
+//! They provide mechanisms to secure cross core access to shared data like MMIO registers of peripherals. As the locks
+//! depend on low level atomics they do only work on the Raspberry Pi if the MMU is properly configured.
+//! Otherwise using either of the lock functions will hang the core it has been used on.
 //! 
 //! # Usage
 //! 
@@ -49,7 +49,7 @@
 //! }
 //! ```
 //! 
-//! Using data container with atmic lock guard.
+//! Using/accessing data with atmic lock guard.
 //! ```
 //! use ruspiro_lock::*;
 //! 

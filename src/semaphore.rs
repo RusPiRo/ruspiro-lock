@@ -24,6 +24,7 @@ use core::sync::atomic::{AtomicBool, Ordering, fence};
 use core::cell::Cell;
 
 #[derive(Debug)]
+#[repr(C, align(16))]
 pub struct Semaphore {
     flag: AtomicBool,
     count: Cell<u32>,
