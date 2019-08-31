@@ -7,7 +7,9 @@
 
 //! # Data Lock
 //! 
-//! Enable exclusive access to data guarded by a cross core atomic lock
+//! Enable exclusive access to data guarded by a cross core atomic lock. In contrast to a ``Singleton`` the data
+//! access lock is always non-blocking and might fail. But exclusive access is guaranteed cross core if the lock
+//! could be aquired.
 //! 
 //! # Example
 //! ```
@@ -26,6 +28,8 @@
 //!     }
 //! }
 //! ```
+//! This example uses a ``static`` variable to define a vraiable that shall be available cross core. The data might also
+//! be wrapped in an ``Arc<DataLock<T>>`` and shared between cores.
 //! 
 
 use core::sync::atomic::{AtomicBool, Ordering};
@@ -33,6 +37,8 @@ use core::cell::UnsafeCell;
 use core::ops::{Deref, DerefMut};
 
 /// An exclusive access lock around the given data
+#[derive(Debug)]
+#[repr(C, align(16))]
 pub struct DataLock<T> {
     locked: AtomicBool,
     data: UnsafeCell<T>,

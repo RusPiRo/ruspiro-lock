@@ -25,6 +25,7 @@
 use core::sync::atomic::{AtomicBool, Ordering};
 
 #[derive(Debug)]
+#[repr(C, align(16))]
 pub struct Spinlock {
     flag: AtomicBool,
 }
