@@ -58,7 +58,7 @@ impl Semaphore {
         crate::disable_interrupts();
         while self.flag.compare_and_swap(false, true, Ordering::Relaxed) != false { }
         fence(Ordering::Acquire);
-                
+        
         let c = self.count.get();
         self.count.set(c + 1);
         // release the atomic access
@@ -125,3 +125,6 @@ impl Semaphore {
         }
     }
 }
+
+unsafe impl Sync for Semaphore { }
+unsafe impl Send for Semaphore { }

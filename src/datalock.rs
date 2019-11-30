@@ -52,7 +52,7 @@ pub struct TryDataLock<'a, T> {
 
 impl<T> DataLock<T> {
     /// Create a new data access guarding lock
-    pub fn new(value: T) -> Self {
+    pub const fn new(value: T) -> Self {
         DataLock {
             locked: AtomicBool::new(false),
             data: UnsafeCell::new(value),
@@ -114,3 +114,6 @@ impl <T> DerefMut for TryDataLock<'_, T> {
         unsafe { &mut *self._data.data.get() }
     }
 }
+
+unsafe impl<T> Sync for DataLock<T> { }
+unsafe impl<T> Send for DataLock<T> { }
