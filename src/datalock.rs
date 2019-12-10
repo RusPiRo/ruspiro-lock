@@ -13,6 +13,8 @@
 //! 
 //! # Example
 //! ```
+//! use ruspiro_lock::DataLock;
+//! 
 //! static DATA: DataLock<u32> = DataLock::new(0);
 //! 
 //! fn main() {
@@ -24,7 +26,7 @@
 //!         println!("data: {}", *data);
 //!     
 //!         // another lock should fail inside this scope
-//!         assert_eq!(DATA.try_lock(), None);
+//!         assert!(DATA.try_lock().is_none());
 //!     }
 //! }
 //! ```
@@ -46,6 +48,7 @@ pub struct DataLock<T> {
 
 /// Result of trying to access the data using ``try_lock`` on the data lock
 /// If the result goes out of scope the lock is released
+#[derive(Debug)]
 pub struct TryDataLock<'a, T> {
     _data: &'a DataLock<T>,
 }
@@ -65,11 +68,11 @@ impl<T> DataLock<T> {
     /// 
     /// # Example
     /// ```
-    /// # fn doc() {
-    ///     let secure_data: DataLock<u32> = DataLock::new(10);
-    /// 
-    ///     if let Some(data) = secure_data.try_lock() {
-    ///         assert_eq!(*data, 10);
+    /// # use ruspiro_lock::DataLock;
+    /// static DATA: DataLock<u32> = DataLock::new(10);
+    /// # fn main() {
+    ///     if let Some(data) = DATA.try_lock() {
+    ///         // do something with data
     ///     }
     /// # }
     /// ```

@@ -11,6 +11,8 @@
 //! 
 //! # Example
 //! ```
+//! use ruspiro_lock::Semaphore;
+//! 
 //! static SEMA: Semaphore = Semaphore::new(1);
 //! 
 //! fn main () {
@@ -34,7 +36,10 @@ impl Semaphore {
     /// Instantiate a new semaphore with a given initial value
     /// # Example
     /// ```
-    /// let mut sema = Semaphore::new(5); // semaphore could be used/aquired 5 times
+    /// # use ruspiro_lock::Semaphore;
+    /// # fn main() {
+    ///     let mut sema = Semaphore::new(5); // semaphore could be used/aquired 5 times
+    /// # }
     /// ```
     pub const fn new(initial: u32) -> Semaphore {
         Semaphore {
@@ -46,10 +51,12 @@ impl Semaphore {
     /// increase the inner count of a semaphore allowing it to be used as many times as the inner counters value
     /// 
     /// # Example
-    /// ```
-    /// let mut sema = Semaphore::new(0);
-    /// 
-    /// sema.up(); // the counter of the semaphore will be increased
+    /// ```no_run
+    /// # use ruspiro_lock::Semaphore;
+    /// # fn main() {
+    ///     let mut sema = Semaphore::new(0);
+    ///     sema.up(); // the counter of the semaphore will be increased
+    /// # }
     /// ```
     pub fn up(&self) {
         // ensure atomic access to the count value so it is not updated from other cores while updating
@@ -70,11 +77,13 @@ impl Semaphore {
     /// and could not beeing decreased. For an unblocking operation use [Semaphore::try_down]
     /// 
     /// # Example
-    /// ```
-    /// let sema = Semaphore::new(0);
-    /// 
-    /// sema.down();
-    /// // if we reache this line, we have used the semaphore and decreased the counter by 1
+    /// ```no_run
+    /// # use ruspiro_lock::Semaphore;
+    /// # fn main() {
+    ///     let sema = Semaphore::new(0);
+    ///     sema.down();
+    ///     // if we reache this line, we have used the semaphore and decreased the counter by 1
+    /// # }
     /// ```
     pub fn down(&self) {
         loop {
@@ -93,11 +102,13 @@ impl Semaphore {
     /// 
     /// # Example
     /// ```
-    /// let sema = Semaphore::new(0);
-    /// 
-    /// if sema.try_down().is_ok() {
-    ///     // do something... the counter of the semaphore has been decreased by 1
-    /// }
+    /// # use ruspiro_lock::Semaphore;
+    /// # fn main() {
+    ///     let sema = Semaphore::new(0);
+    ///     if sema.try_down().is_ok() {
+    ///         // do something... the counter of the semaphore has been decreased by 1
+    ///     }
+    /// # }
     /// ```
     pub fn try_down(&self) -> Result<(), &'static str> {
         // we need to deactivate interrupts as this wait should never beeing interrupted

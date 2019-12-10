@@ -13,6 +13,8 @@
 //! 
 //! # Example
 //! ```
+//! use ruspiro_lock::Spinlock;
+//! 
 //! static LOCK: Spinlock = Spinlock::new();
 //! 
 //! fn main () {
@@ -34,6 +36,7 @@ impl Spinlock {
     /// Create a new Spinlock. To ensure it is shared between cores, it's typically assigned to a static variable
     /// # Example
     /// ```
+    /// # use ruspiro_lock::Spinlock;
     /// static LOCK: Spinlock = Spinlock::new();
     /// ```
     pub const fn new() -> Spinlock {
@@ -42,6 +45,16 @@ impl Spinlock {
         }
     }
 
+    /// Aquire a spinlock. This will block the current core until the lock could be aquired.
+    /// # Example
+    /// ```no_run
+    /// # use ruspiro_lock::Spinlock;
+    /// static LOCK: Spinlock = Spinlock::new();
+    /// # fn main() {
+    ///     LOCK.aquire();
+    ///     // execution continues only if the lock could be aquired
+    /// # }
+    /// ```
     pub fn aquire(&self) {
         // set the atomic value to true if it has been false before (set the lock)
         // we need to deactivate interrupts as this wait and the aquired lock should never beeing interrupted
@@ -50,6 +63,15 @@ impl Spinlock {
         while self.flag.compare_and_swap(false, true, Ordering::SeqCst) != false { }
     }
 
+    /// Release an aquired spinlock.
+    /// # Example
+    /// ```no_run
+    /// # use ruspiro_lock::Spinlock;
+    /// static LOCK: Spinlock = Spinlock::new();
+    /// # fn main() {
+    ///     LOCK.release();
+    /// # }
+    /// ```
     pub fn release(&self) {
         self.flag.store(false, Ordering::SeqCst);
         // re-activate interrupts to the previous enable-state as the lock is now released

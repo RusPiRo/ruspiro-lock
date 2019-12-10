@@ -15,7 +15,7 @@ Simple to use abstractions on low level atomic locks:
 To use this crate simply add the dependency to your ``Cargo.toml`` file:
 ```
 [dependencies]
-ruspiro-lock = "0.2"
+ruspiro-lock = "0.3"
 ```
 
 Once done the definition and usage of the locks is as follows:
