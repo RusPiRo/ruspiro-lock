@@ -20,7 +20,7 @@ maintenance = { status = "actively-developed" }
 [lib]
 
 [dependencies]
-ruspiro-interrupt-core = { path = "../interrupt/core", version = "0.2" }
+ruspiro-interrupt-core = { path = "../interrupt/core", version = "0.3" }
 
 [features]
 default = ["ruspiro_pi3"]
