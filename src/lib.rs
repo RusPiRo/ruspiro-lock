@@ -4,7 +4,7 @@
  * Author: André Borrmann 
  * License: Apache License 2.0
  **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.2.2")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.3.0")]
 #![no_std]
 #![feature(asm)]
 
@@ -19,7 +19,7 @@
 //! 
 //! Using a Spinlock to ensure exclusive access.
 //! ```
-//! use ruspiro_lock::*;
+//! use ruspiro_lock::Spinlock;
 //! 
 //! static SPIN: Spinlock = Spinlock::new();
 //! 
@@ -34,7 +34,7 @@
 //! Using a Semaphore to specify how often specific access is valid.
 //! 
 //! ```
-//! use ruspriro_lock::*;
+//! use ruspiro_lock::Semaphore;
 //! 
 //! static mut SEMA: Semaphore = Semaphore::new(1);
 //! 
@@ -51,7 +51,7 @@
 //! 
 //! Using/accessing data with atmic lock guard.
 //! ```
-//! use ruspiro_lock::*;
+//! use ruspiro_lock::DataLock;
 //! 
 //! static DATA: DataLock<u32> = DataLock::new(0);
 //! 
@@ -64,7 +64,7 @@
 //!         println!("data: {}", *data);
 //!     
 //!         // another lock should fail inside this scope
-//!         assert_eq!(DATA.try_lock(), None);
+//!         assert!(DATA.try_lock().is_none());
 //!     }
 //! }
 //! ```
