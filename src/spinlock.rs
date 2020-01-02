@@ -1,7 +1,7 @@
-/*********************************************************************************************************************** 
+/***********************************************************************************************************************
  * Copyright (c) 2019 by the authors
- * 
- * Author: André Borrmann 
+ *
+ * Author: André Borrmann
  * License: Apache License 2.0
  **********************************************************************************************************************/
 
@@ -10,17 +10,17 @@
 //! shared between them. For example MMIO mapped registers that allow access to peripherals. Please note that usage
 //! of Spinlocks on Raspberry Pi is only safe if the MMU has ben configured properly. Otherwise the cores trying to aquire
 //! a lock will just hang, even if the lock would be available to them.
-//! 
+//!
 //! # Example
 //! ```
 //! use ruspiro_lock::Spinlock;
-//! 
+//!
 //! static LOCK: Spinlock = Spinlock::new();
-//! 
+//!
 //! fn main () {
 //!     LOCK.aquire(); // will only return if the lock could be set
 //!     // do something
-//! 
+//!
 //!     LOCK.release(); // releasing the lock
 //! }
 //! ```
@@ -60,7 +60,7 @@ impl Spinlock {
         // we need to deactivate interrupts as this wait and the aquired lock should never beeing interrupted
         // otherwise it could lead to deadlocks
         crate::disable_interrupts();
-        while self.flag.compare_and_swap(false, true, Ordering::SeqCst) != false { }
+        while self.flag.compare_and_swap(false, true, Ordering::SeqCst) {}
     }
 
     /// Release an aquired spinlock.
