@@ -1,11 +1,13 @@
-/***********************************************************************************************************************
+/***************************************************************************************************
  * Copyright (c) 2019 by the authors
  *
  * Author: André Borrmann
  * License: Apache License 2.0
- **********************************************************************************************************************/
+ **************************************************************************************************/
 
-//! # Semaphore implementation. It uses atomic memory locks to ensure the semaphore is exclusively accessed while checking
+//! # Semaphore implementation.
+//!
+//! It uses atomic memory locks to ensure the semaphore is exclusively accessed while checking
 //! or updating it's value. On Raspbarry Pi this will only work if the MMU has been properly configured. Otherwise those
 //! operations may just hang.
 //!
@@ -25,6 +27,7 @@
 use core::cell::Cell;
 use core::sync::atomic::{fence, AtomicBool, Ordering};
 
+/// Simple counting blocking or non-blocking lock
 #[derive(Debug)]
 #[repr(C, align(16))]
 pub struct Semaphore {
@@ -110,7 +113,7 @@ impl Semaphore {
     ///     }
     /// # }
     /// ```
-    pub fn try_down(&self) -> Result<(), &'static str> {
+    pub fn try_down(&self) -> Result<(), ()> {
         // we need to deactivate interrupts as this wait should never beeing interrupted
         // otherwise it could lead to deadlocks
         crate::disable_interrupts();
@@ -132,7 +135,7 @@ impl Semaphore {
         if success {
             Ok(())
         } else {
-            Err("unable to use the semaphore, counter is less than 1")
+            Err(())
         }
     }
 }

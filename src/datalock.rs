@@ -1,15 +1,15 @@
-/***********************************************************************************************************************
+/***************************************************************************************************
  * Copyright (c) 2019 by the authors
  *
  * Author: André Borrmann
  * License: Apache License 2.0
- **********************************************************************************************************************/
+ **************************************************************************************************/
 
 //! # Data Lock
 //!
-//! Enable exclusive access to data guarded by a cross core atomic lock. In contrast to a ``Singleton`` the data
-//! access lock is always non-blocking and might fail. But exclusive access is guaranteed cross core if the lock
-//! could be aquired.
+//! Enable exclusive access to data guarded by a cross core atomic lock. In contrast to a ``Singleton``
+//! the data access lock could also be non-blocking and might fail. But exclusive access is guaranteed
+//! across cores if the lock could be aquired.
 //!
 //! # Example
 //! ```
@@ -30,8 +30,9 @@
 //!     }
 //! }
 //! ```
-//! This example uses a ``static`` variable to define a vraiable that shall be available cross core. The data might also
-//! be wrapped in an ``Arc<DataLock<T>>`` and shared between cores.
+//! This example uses a ``static`` variable to define a lock that shall be available across cores.
+//! The data might also be wrapped in an ``Arc<DataLock<T>>`` and shared between cores using clones
+//! of the ``Arc``.
 //!
 
 use core::cell::UnsafeCell;
@@ -46,8 +47,8 @@ pub struct DataLock<T> {
     data: UnsafeCell<T>,
 }
 
-/// Result of trying to access the data using ``try_lock`` on the data lock
-/// If the result goes out of scope the lock is released
+/// Result of trying to access the data using ``try_lock`` or ``lock`` on the data lock. If the
+/// result goes out of scope the lock is released.
 #[derive(Debug)]
 pub struct TryDataLock<'a, T> {
     _data: &'a DataLock<T>,

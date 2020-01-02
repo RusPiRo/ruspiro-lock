@@ -26,6 +26,10 @@
 //! ```
 use core::sync::atomic::{AtomicBool, Ordering};
 
+/// A blocking cross core lock to guarantee mutual exclusive access. While this lock might block other cores
+/// to continue processing this lock should be held as short as possible. Also care shall be taken
+/// while using this lock within interrupt handlers, as this might lead to deadlock situations if the
+/// lock holding core is interrupted and the interrupt is also trying to aquire the same lock.
 #[derive(Debug)]
 #[repr(C, align(16))]
 pub struct Spinlock {
