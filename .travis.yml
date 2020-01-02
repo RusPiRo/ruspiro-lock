@@ -34,3 +34,6 @@ matrix:
 
     - name: "unit tests"
       script: sed -i 's/path.*=.*\".*", version/version/g' Cargo.toml && cargo test --tests
+
+    - name: "doc tests"
+      script: sed -i 's/path.*=.*\".*", version/version/g' Cargo.toml && cargo test --doc

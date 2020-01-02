@@ -1,28 +1,28 @@
-/*********************************************************************************************************************** 
+/***************************************************************************************************
  * Copyright (c) 2019 by the authors
- * 
- * Author: André Borrmann 
+ *
+ * Author: André Borrmann
  * License: Apache License 2.0
- **********************************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.3.0")]
+ **************************************************************************************************/
+#![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.3.1")]
 #![no_std]
 #![feature(asm)]
 
 //! # Atomic locks for Raspberry Pi baremetal systems
-//! 
-//! This crate provides two options of locks and a data access guard. [Spinlock], [Semaphore], [Datalock].
+//!
+//! This crate provides two options of locks and a data access guard. [Spinlock], [Semaphore], [DataLock].
 //! They provide mechanisms to secure cross core access to shared data like MMIO registers of peripherals. As the locks
 //! depend on low level atomics they do only work on the Raspberry Pi if the MMU is properly configured.
 //! Otherwise using either of the lock functions will hang the core it has been used on.
-//! 
+//!
 //! # Usage
-//! 
+//!
 //! Using a Spinlock to ensure exclusive access.
 //! ```
 //! use ruspiro_lock::Spinlock;
-//! 
+//!
 //! static SPIN: Spinlock = Spinlock::new();
-//! 
+//!
 //! fn main() {
 //!     SPIN.aquire();
 //!     // following code is only executed if the lock could be aquired, the executing core pause till then
@@ -30,14 +30,14 @@
 //!     SPIN.release();
 //! }
 //! ```
-//! 
+//!
 //! Using a Semaphore to specify how often specific access is valid.
-//! 
+//!
 //! ```
 //! use ruspiro_lock::Semaphore;
-//! 
+//!
 //! static mut SEMA: Semaphore = Semaphore::new(1);
-//! 
+//!
 //! fn main() {
 //!     unsafe { // unsafe necessary as accessing mut static's is unsafe
 //!         if SEMA.try_down().is_ok() {
@@ -48,13 +48,13 @@
 //!     }
 //! }
 //! ```
-//! 
+//!
 //! Using/accessing data with atmic lock guard.
 //! ```
 //! use ruspiro_lock::DataLock;
-//! 
+//!
 //! static DATA: DataLock<u32> = DataLock::new(0);
-//! 
+//!
 //! fn main() {
 //!     if let Some(mut data) = DATA.try_lock() {
 //!         *data = 20;
@@ -66,21 +66,24 @@
 //!         // another lock should fail inside this scope
 //!         assert!(DATA.try_lock().is_none());
 //!     }
+//!     
+//!     // a blocking lock on the data will block the current execution until the lock get's available
+//!     let mut data = DATA.lock();
+//!     *data = 12;
 //! }
 //! ```
-//! 
+//!
 
+use ruspiro_interrupt_core::*;
 
 // re-export the spinlock
-pub mod spinlock;
+mod spinlock;
 pub use spinlock::*;
 
 // re-export the semaphore
-pub mod semaphore;
+mod semaphore;
 pub use semaphore::*;
 
 // re-export the data-lock
-pub mod datalock;
+mod datalock;
 pub use datalock::*;
-
-use ruspiro_interrupt_core::*;

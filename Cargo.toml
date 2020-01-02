@@ -1,13 +1,13 @@
 [package]
 name = "ruspiro-lock"
 authors = ["André Borrmann <pspwizard@gmx.de>"]
-version = "0.3.0" # remember to update html_root_url
+version = "0.3.1" # remember to update html_root_url
 description = """
 Simple atomic locking and safe data access (mutual exclusive) cross cores on Raspberry Pi.
 """
 license = "Apache-2.0"
-repository = "https://github.com/RusPiRo/ruspiro-lock/tree/v0.3.0"
-documentation = "https://docs.rs/ruspiro-lock/0.3.0"
+repository = "https://github.com/RusPiRo/ruspiro-lock/tree/v0.3.1"
+documentation = "https://docs.rs/ruspiro-lock/0.3.1"
 readme = "README.md"
 keywords = ["RusPiRo", "spinlock", "semaphore", "datalock", "raspberrypi"]
 categories = ["no-std", "embedded"]
@@ -23,5 +23,3 @@ maintenance = { status = "actively-developed" }
 ruspiro-interrupt-core = { path = "../interrupt/core", version = "0.3" }
 
 [features]
-default = ["ruspiro_pi3"]
-ruspiro_pi3 = []
