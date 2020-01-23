@@ -24,15 +24,14 @@
 //!     SEMA.up(); // increase the counter for another usage
 //! }
 //! ```
-use core::cell::Cell;
-use core::sync::atomic::{fence, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU16, Ordering};
 
 /// Simple counting blocking or non-blocking lock
 #[derive(Debug)]
 #[repr(C, align(16))]
 pub struct Semaphore {
     flag: AtomicBool,
-    count: Cell<u32>,
+    count: AtomicU16, //Cell<u32>,
 }
 
 impl Semaphore {
@@ -44,10 +43,10 @@ impl Semaphore {
     ///     let mut sema = Semaphore::new(5); // semaphore could be used/aquired 5 times
     /// # }
     /// ```
-    pub const fn new(initial: u32) -> Semaphore {
+    pub const fn new(initial: u16) -> Semaphore {
         Semaphore {
             flag: AtomicBool::new(false),
-            count: Cell::new(initial),
+            count: AtomicU16::new(initial), //Cell::new(initial),
         }
     }
 
@@ -62,18 +61,9 @@ impl Semaphore {
     /// # }
     /// ```
     pub fn up(&self) {
-        // ensure atomic access to the count value so it is not updated from other cores while updating
-        // we need to deactivate interrupts as this wait should never beeing interrupted
-        // otherwise it could lead to deadlocks
-        crate::disable_interrupts();
-        while self.flag.compare_and_swap(false, true, Ordering::Relaxed) {}
-        fence(Ordering::Acquire);
-
-        let c = self.count.get();
-        self.count.set(c + 1);
-        // release the atomic access
+        while self.flag.compare_and_swap(false, true, Ordering::SeqCst) {}
+        self.count.fetch_add(1, Ordering::AcqRel);
         self.flag.store(false, Ordering::Release);
-        crate::re_enable_interrupts();
     }
 
     /// decrease the inner count of a semaphore. This blocks the current core if the current count is 0
@@ -93,11 +83,6 @@ impl Semaphore {
             if self.try_down().is_ok() {
                 return;
             }
-            // a small hack to force some cpu cycles to pass before the next try
-            // may be a timer wait in the future?
-            for _ in 0..100 {
-                unsafe { asm!("nop") };
-            }
         }
     }
 
@@ -116,25 +101,13 @@ impl Semaphore {
     pub fn try_down(&self) -> Result<(), ()> {
         // we need to deactivate interrupts as this wait should never beeing interrupted
         // otherwise it could lead to deadlocks
-        crate::disable_interrupts();
-        while self.flag.compare_and_swap(false, true, Ordering::Relaxed) {}
-        fence(Ordering::Acquire);
-
-        // try to decrease the counter
-        let c = self.count.get();
-        let success = if c > 0 {
-            self.count.set(c - 1);
-            true
-        } else {
-            false
-        };
-        // release the atomic access
-        self.flag.store(false, Ordering::Release);
-        crate::re_enable_interrupts();
-
-        if success {
+        while self.flag.compare_and_swap(false, true, Ordering::SeqCst) {}
+        if self.count.load(Ordering::Acquire) > 0 {
+            self.count.fetch_sub(1, Ordering::AcqRel);
+            self.flag.store(false, Ordering::Release);
             Ok(())
         } else {
+            self.flag.store(false, Ordering::Release);
             Err(())
         }
     }

@@ -18,59 +18,58 @@ To use this crate simply add the dependency to your ``Cargo.toml`` file:
 ruspiro-lock = "0.3"
 ```
 
-Once done the definition and usage of the locks is as follows:
+Once done the definition and usage of the locks is as follows. Keep in mind to share those locking
+primitives accross the Rasperry Pi cores they should be wrapped in an ``Arc``.
 
-Using a Spinlock to ensure exclusive access:
+## Spinlock
 ```
-use ruspiro_lock::*;
-
-static SPIN: Spinlock = Spinlock::new();
+use ruspiro_lock::Spinlock;
 
 fn main() {
-    SPIN.aquire();
+    let spin = Spinlock::new();
+    spin.aquire();
     // following code is only executed if the lock could be aquired, the executing core pause till then
     let _ = 10 + 3;
-    SPIN.release();
+    spin.release();
 }
 ```
 
-Using a Semaphore to specify how often specific access is valid:
+## Semaphore
 ```
-use ruspriro_lock::*;
-
-static mut SEMA: Semaphore = Semaphore::new(1);
+use ruspiro_lock::Semaphore;
 
 fn main() {
-    unsafe { // unsafe necessary as accessing mut static's is unsafe
-        if SEMA.try_down().is_ok() {
-            // we gained access to the semaphore, do something
-            let _ = 20 /4;
-            SEMA.up();
-        }
+    let sema  = Semaphore::new(1);
+    if sema.try_down().is_ok() {
+        // we gained access to the semaphore, do something
+        let _ = 20 /4;
+        sema.up();
     }
 }
 ```
 
-Using data container with atmic lock guard:
+## DataLock
 ```
-use ruspiro_lock::*;
-
-static DATA: DataLock<u32> = DataLock::new(0);
+use ruspiro_lock::DataLock;
 
 fn main() {
-    if let Some(mut data) = DATA.try_lock() {
+    let dalo = DataLock::new(0u32);
+    if let Some(mut data) = dalo.try_lock() {
         *data = 20;
     }
     // once the data goes ot of scope the lock will be released
-    if let Some(data) = DATA.try_lock() {
+    if let Some(data) = dalo.try_lock() {
         println!("data: {}", *data);
     
         // another lock should fail inside this scope
-        assert_eq!(DATA.try_lock(), None);
+        assert!(dalo.try_lock().is_none());
     }
+    
+    // a blocking lock on the data will block the current execution until the lock get's available
+    let mut data = dalo.lock();
+    *data = 12;
 }
 ```
-
 
 ## License
 Licensed under Apache License, Version 2.0, ([LICENSE](LICENSE) or http://www.apache.org/licenses/LICENSE-2.0)
