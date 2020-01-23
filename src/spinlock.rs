@@ -61,9 +61,6 @@ impl Spinlock {
     /// ```
     pub fn aquire(&self) {
         // set the atomic value to true if it has been false before (set the lock)
-        // we need to deactivate interrupts as this wait and the aquired lock should never beeing interrupted
-        // otherwise it could lead to deadlocks
-        crate::disable_interrupts();
         while self.flag.compare_and_swap(false, true, Ordering::SeqCst) {}
     }
 
@@ -78,8 +75,5 @@ impl Spinlock {
     /// ```
     pub fn release(&self) {
         self.flag.store(false, Ordering::SeqCst);
-        // re-activate interrupts to the previous enable-state as the lock is now released
-        // and no interrupt deadlocks can occur
-        crate::re_enable_interrupts();
     }
 }

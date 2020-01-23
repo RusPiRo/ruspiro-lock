@@ -40,8 +40,8 @@ use core::ops::{Deref, DerefMut};
 use core::sync::atomic::{AtomicBool, Ordering};
 
 /// An exclusive access lock around the given data
-#[derive(Debug)]
 #[repr(C, align(16))]
+#[derive(Debug)]
 pub struct DataLock<T> {
     locked: AtomicBool,
     data: UnsafeCell<T>,
@@ -79,16 +79,13 @@ impl<T> DataLock<T> {
     /// ```
     pub fn try_lock(&self) -> Option<TryDataLock<T>> {
         // do the atomic operation to set the lock
-        crate::disable_interrupts();
-        let data_lock = if !self.locked.swap(true, Ordering::SeqCst) {
+        if !self.locked.swap(true, Ordering::SeqCst) {
             // has been false previously means we now have the lock
             Some(TryDataLock { _data: self })
         } else {
             // we couldn't set the lock
             None
-        };
-        crate::re_enable_interrupts();
-        data_lock
+        }
     }
 
     /// Lock the guarded data for mutual exclusive access. This blocks until the data could be
