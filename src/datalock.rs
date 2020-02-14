@@ -110,6 +110,10 @@ impl<T> DataLock<T> {
             }
         }
     }
+
+    pub fn read(&self) -> &T {
+        unsafe { &*self.data.get() }
+    }
 }
 
 // when the TryDataLock is dropped release the owning lock
