@@ -59,9 +59,17 @@ impl Spinlock {
     ///     // execution continues only if the lock could be aquired
     /// # }
     /// ```
+    #[inline]
     pub fn aquire(&self) {
         // set the atomic value to true if it has been false before (set the lock)
         while self.flag.compare_and_swap(false, true, Ordering::SeqCst) {}
+
+        #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
+        unsafe {
+            // dmb required before allow access to the protected resource, see:
+            // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
+            llvm_asm!("dmb sy");
+        }
     }
 
     /// Release an aquired spinlock.
@@ -73,7 +81,21 @@ impl Spinlock {
     ///     LOCK.release();
     /// # }
     /// ```
+    #[inline]
     pub fn release(&self) {
         self.flag.store(false, Ordering::SeqCst);
+
+        #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
+        unsafe {
+            // dmb required before allow access to the protected resource, see:
+            // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
+            llvm_asm!("dmb sy");
+            // also raise a signal to indicate the spinlock has been changed (this trigger all WFE's to continue 
+            // processing) but do data syncronisation barrier upfront to ensure any data updates has been finished
+            llvm_asm!(
+                "dsb sy
+                 sev"
+            );
+        }
     }
 }
