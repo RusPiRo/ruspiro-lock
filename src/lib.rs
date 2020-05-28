@@ -4,7 +4,7 @@
  * Author: André Borrmann
  * License: Apache License 2.0
  **************************************************************************************************/
-#![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.3.2")]
+#![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.3.3")]
 #![no_std]
 #![feature(llvm_asm)]
 
