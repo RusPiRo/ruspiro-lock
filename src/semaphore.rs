@@ -24,14 +24,13 @@
 //!     SEMA.up(); // increase the counter for another usage
 //! }
 //! ```
-use core::sync::atomic::{AtomicBool, AtomicU16, Ordering};
+use core::sync::atomic::{AtomicU32, Ordering};
 
 /// Simple counting blocking or non-blocking lock
 #[derive(Debug)]
 #[repr(C, align(16))]
 pub struct Semaphore {
-    flag: AtomicBool,
-    count: AtomicU16, //Cell<u32>,
+    count: AtomicU32,
 }
 
 impl Semaphore {
@@ -43,10 +42,9 @@ impl Semaphore {
     ///     let mut sema = Semaphore::new(5); // semaphore could be used/aquired 5 times
     /// # }
     /// ```
-    pub const fn new(initial: u16) -> Semaphore {
+    pub const fn new(initial: u32) -> Semaphore {
         Semaphore {
-            flag: AtomicBool::new(false),
-            count: AtomicU16::new(initial), //Cell::new(initial),
+            count: AtomicU32::new(initial),
         }
     }
 
@@ -60,10 +58,22 @@ impl Semaphore {
     ///     sema.up(); // the counter of the semaphore will be increased
     /// # }
     /// ```
+    #[inline]
     pub fn up(&self) {
-        while self.flag.compare_and_swap(false, true, Ordering::SeqCst) {}
         self.count.fetch_add(1, Ordering::AcqRel);
-        self.flag.store(false, Ordering::Release);
+        
+        #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
+        unsafe {
+            // dmb required before allow access to the protected resource, see:
+            // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
+            llvm_asm!("dmb sy");
+            // also raise a signal to indicate the semaphore has been changed (this trigger all WFE's to continue 
+            // processing) but do data syncronisation barrier upfront to ensure any data updates has been finished
+            llvm_asm!(
+                "dsb sy
+                 sev"
+            );
+        }
     }
 
     /// decrease the inner count of a semaphore. This blocks the current core if the current count is 0
@@ -78,11 +88,16 @@ impl Semaphore {
     ///     // if we reache this line, we have used the semaphore and decreased the counter by 1
     /// # }
     /// ```
+    #[inline]
     pub fn down(&self) {
         loop {
             if self.try_down().is_ok() {
                 return;
             }
+            // to save energy and cpu consumption we can wait for an event beeing raised that indicates that the 
+            // semaphore value has likely beeing changed
+            #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
+            unsafe { llvm_asm!("wfe"); }
         }
     }
 
@@ -98,18 +113,28 @@ impl Semaphore {
     ///     }
     /// # }
     /// ```
+    #[inline]
     pub fn try_down(&self) -> Result<(), ()> {
-        // we need to deactivate interrupts as this wait should never beeing interrupted
-        // otherwise it could lead to deadlocks
-        while self.flag.compare_and_swap(false, true, Ordering::SeqCst) {}
-        if self.count.load(Ordering::Acquire) > 0 {
-            self.count.fetch_sub(1, Ordering::AcqRel);
-            self.flag.store(false, Ordering::Release);
+        let mut value = self.count.load(Ordering::Acquire);
+        if value > 0 {
+            value -= 1;
+            self.count.store(value, Ordering::Release);
+            // dmb required before allow access to the protected resource see:
+            // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
+            #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
+            unsafe { llvm_asm!("dmb sy"); }
             Ok(())
         } else {
-            self.flag.store(false, Ordering::Release);
+            // set the current value as "dummy" store to clear the atomic monitor
+            self.count.store(value, Ordering::Release);
             Err(())
         }
+    }
+}
+
+impl Default for Semaphore {
+    fn default() -> Self {
+        Semaphore::new(0)
     }
 }
 

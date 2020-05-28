@@ -6,6 +6,7 @@
  **************************************************************************************************/
 #![doc(html_root_url = "https://docs.rs/ruspiro-lock/0.3.2")]
 #![no_std]
+#![feature(llvm_asm)]
 
 //! # Atomic locks for Raspberry Pi baremetal systems
 //!
@@ -80,3 +81,7 @@ pub use semaphore::*;
 // re-export the data-lock
 mod datalock;
 pub use datalock::*;
+
+// re-export the data read/write lock
+mod datarwlock;
+pub use datarwlock::*;
