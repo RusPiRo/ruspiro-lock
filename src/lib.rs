@@ -69,18 +69,11 @@
 //! }
 //! ```
 
-// re-export the spinlock
-mod spinlock;
-pub use spinlock::*;
+// re-export the sync lock types
+pub mod sync;
+// if the async feature is not enabled export the sync locks at the crates root level
+#[cfg(not(fetaure = "async_locks"))]
+pub use sync::*;
 
-// re-export the semaphore
-mod semaphore;
-pub use semaphore::*;
-
-// re-export the data-lock
-mod mutex;
-pub use mutex::*;
-
-// re-export the data read/write lock
-mod rwlock;
-pub use rwlock::*;
+#[cfg(feature = "async_locks")]
+pub mod r#async;
