@@ -110,7 +110,7 @@ impl<T> Drop for AsyncMutexGuard<'_, T> {
 }
 
 /// The `Future` that represents an `await`able [AsynMutex] and can only be created from the functions of [AsyncMutex].
-pub struct AsyncMutexFuture<'a, T: ?Sized> {
+struct AsyncMutexFuture<'a, T: ?Sized> {
     inner: Arc<Mutex<AsyncMutexInner>>,
     data: Arc<Mutex<T>>,
     id: usize,
@@ -174,5 +174,40 @@ impl AsyncMutexInner {
             waiter: BTreeMap::new(),
             next_waiter: 0,
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use async_std::prelude::*;
+    use async_std::task;
+    use core::time::Duration;
+    use super::*;
+
+    #[async_std::test]
+    async fn wait_on_mutex() {
+        let mutex = Arc::new(AsyncMutex::new(10_u32));
+        let mutex_clone = Arc::clone(&mutex);
+        
+        let task1 = task::spawn(async move {
+            let mut guard = mutex_clone.lock().await;
+            **guard = 20;
+            // with the AsyncMutexLock in place wait a second to keep the guard
+            // alive and let the second task relly wait for this one
+            task::sleep(Duration::from_secs(1)).await;
+        });
+
+        let task2 = task::spawn( async move {
+            // if this async is started first wait a bit to really run the
+            // other one first to aquire the AsyncMutexLock
+            task::sleep(Duration::from_millis(100)).await;
+            let guard = mutex.lock().await;
+            let value = **guard;
+            assert_eq!(20, value);
+        });
+        
+        // run both tasks concurrently
+        task1.join(task2).await;
     }
 }

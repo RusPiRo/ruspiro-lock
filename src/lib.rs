@@ -10,10 +10,20 @@
 
 //! # Atomic locks for Raspberry Pi baremetal systems
 //!
-//! This crate provides two options of locks and a data access guard. [Spinlock], [Semaphore], [Mutex].
-//! They provide mechanisms to secure cross core access to shared data like MMIO registers of peripherals. As the locks
-//! depend on low level atomics they do only work on the Raspberry Pi if the MMU is properly configured.
+//! This crate provides different kinds of locks and access guards to secure data access across cores and/or threads.
+//! Those locks are *Spinlock*, *Semaphore*, *Mutex* and *RWLock*. The * Semaphore*, *Mutex* and *RWLock* are available
+//! as `async` version as well to allow them to work in a *non blocking* fashion as required by `async` code.
+//!
+//! ## Usage Hint:
+//! As the locks depend on low level atomics they do only work on the Raspberry Pi if the MMU is properly configured.
 //! Otherwise using either of the lock functions will hang the core it has been used on.
+//!
+//! ## Features
+//!
+//! Feature | Usage
+//! --------|--------
+//! async_locks | allows usage of the `async` lock versions.
+//!
 //!
 //! To share those locking primitives accross the Rasperry Pi cores they should be wrapped in an ``Arc``.
 //!
@@ -46,7 +56,7 @@
 //! }
 //! ```
 //!
-//! ## DataLock
+//! ## Mutex
 //! ```
 //! use ruspiro_lock::Mutex;
 //!
@@ -72,8 +82,8 @@
 // re-export the sync lock types
 pub mod sync;
 // if the async feature is not enabled export the sync locks at the crates root level
-#[cfg(not(fetaure = "async_locks"))]
+#[cfg(not(any(feature = "async_locks", doc)))]
 pub use sync::*;
 
-#[cfg(feature = "async_locks")]
+#[cfg(any(feature = "async_locks", doc))]
 pub mod r#async;

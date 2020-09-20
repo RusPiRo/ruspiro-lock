@@ -22,8 +22,18 @@ is-it-maintained-open-issues = { repository = "RusPiRo/ruspiro-lock" }
 
 [lib]
 
+[dev-dependencies]
+async-std = { version = "1.6.4", features = ["attributes", "unstable"] }
+
 [dependencies]
 
 [features]
 ruspiro_pi3 = []
 async_locks = []
+
+# ensure the required features of the crate are active for the doc.rs build
+[package.metadata.docs.rs]
+features = [
+    "ruspiro_pi3",
+    "async_locks"
+]

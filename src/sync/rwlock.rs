@@ -15,7 +15,7 @@ use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 /// An exclusive access lock around the given data
 #[repr(C, align(16))]
-pub struct RWLock<T> {
+pub struct RWLock<T: ?Sized> {
     /// indicates whether a mutual exclusive write lock exists
     write_lock: AtomicBool,
     /// counts existing read-locks, this could be used in future to mark the data as "dirty" if a write lock is aquired
@@ -82,9 +82,9 @@ impl<T> RWLock<T> {
     ///
     pub fn lock(&self) -> WriteLockGuard<T> {
         loop {
-            if let Some(data) = self.try_lock() {
+            if let Some(write_guard) = self.try_lock() {
                 //println!("write lock aquired {:?}", core::any::type_name::<T>());
-                return data;
+                return write_guard;
             }
             // to save energy and cpu consumption we can wait for an event beeing raised that indicates that the
             // semaphore value has likely beeing changed
@@ -98,13 +98,28 @@ impl<T> RWLock<T> {
     /// Provide a ReadLock to the wrapped data. This call blocks until the recource is available.
     /// There can be as many concurrent [ReadLockGuard]s being handed out if there is no [WriteLockGuard] to the
     /// same resource already existing.
+    pub fn try_read(&self) -> Option<ReadLockGuard<T>> {
+        // read locks can only handed out if no write lock is existing already
+        if self.write_lock.load(Ordering::Relaxed) {
+            return None;
+        } else {
+            self.read_locks.fetch_add(1, Ordering::Acquire);
+            //println!("read lock aquired {:?}", core::any::type_name::<T>());
+            return Some(
+                ReadLockGuard { _data: self }
+            );
+        }
+    }
+
+    /// Provide a ReadLock to the wrapped data. This call blocks until the recource is available.
+    /// There can be as many concurrent [ReadLockGuard]s being handed out if there is no [WriteLockGuard] to the
+    /// same resource already existing.
     pub fn read(&self) -> ReadLockGuard<T> {
         // read locks can only handed out if no write lock is existing already
         loop {
-            if !self.write_lock.load(Ordering::Relaxed) {
-                self.read_locks.fetch_add(1, Ordering::Acquire);
-                //println!("read lock aquired {:?}", core::any::type_name::<T>());
-                return ReadLockGuard { _data: self };
+            if let Some(read_guard) = self.try_read() {
+                //println!("write lock aquired {:?}", core::any::type_name::<T>());
+                return read_guard;
             }
 
             // to save energy and cpu consumption we can wait for an event beeing raised that indicates that the
