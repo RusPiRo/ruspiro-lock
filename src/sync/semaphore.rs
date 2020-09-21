@@ -1,9 +1,9 @@
-/***************************************************************************************************
- * Copyright (c) 2019 by the authors
+/***********************************************************************************************************************
+ * Copyright (c) 2020 by the authors
  *
- * Author: André Borrmann
- * License: Apache License 2.0
- **************************************************************************************************/
+ * Author: André Borrmann <pspwizard@gmx.de>
+ * License: Apache License 2.0 / MIT
+ **********************************************************************************************************************/
 
 //! # Semaphore implementation.
 //!
@@ -61,13 +61,13 @@ impl Semaphore {
     #[inline]
     pub fn up(&self) {
         self.count.fetch_add(1, Ordering::AcqRel);
-        
+
         #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
         unsafe {
             // dmb required before allow access to the protected resource, see:
             // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
             llvm_asm!("dmb sy");
-            // also raise a signal to indicate the semaphore has been changed (this trigger all WFE's to continue 
+            // also raise a signal to indicate the semaphore has been changed (this trigger all WFE's to continue
             // processing) but do data syncronisation barrier upfront to ensure any data updates has been finished
             llvm_asm!(
                 "dsb sy
@@ -94,10 +94,12 @@ impl Semaphore {
             if self.try_down().is_ok() {
                 return;
             }
-            // to save energy and cpu consumption we can wait for an event beeing raised that indicates that the 
+            // to save energy and cpu consumption we can wait for an event beeing raised that indicates that the
             // semaphore value has likely beeing changed
             #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
-            unsafe { llvm_asm!("wfe"); }
+            unsafe {
+                llvm_asm!("wfe");
+            }
         }
     }
 
@@ -122,7 +124,9 @@ impl Semaphore {
             // dmb required before allow access to the protected resource see:
             // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
             #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
-            unsafe { llvm_asm!("dmb sy"); }
+            unsafe {
+                llvm_asm!("dmb sy");
+            }
             Ok(())
         } else {
             // set the current value as "dummy" store to clear the atomic monitor

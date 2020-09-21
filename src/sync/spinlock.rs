@@ -1,15 +1,15 @@
 /***********************************************************************************************************************
- * Copyright (c) 2019 by the authors
+ * Copyright (c) 2020 by the authors
  *
- * Author: André Borrmann
- * License: Apache License 2.0
+ * Author: André Borrmann <pspwizard@gmx.de>
+ * License: Apache License 2.0 / MIT
  **********************************************************************************************************************/
 
 //! # Spinlock
 //! Providing simple atomic Spinlock. This can be used to ensure cross core atomic access to data that is typically
 //! shared between them. For example MMIO mapped registers that allow access to peripherals. Please note that usage
-//! of Spinlocks on Raspberry Pi is only safe if the MMU has ben configured properly. Otherwise the cores trying to aquire
-//! a lock will just hang, even if the lock would be available to them.
+//! of Spinlocks on Raspberry Pi is only safe if the MMU has ben configured properly. Otherwise the cores trying to
+//! aquire a lock will just hang, even if the lock would be available to them.
 //!
 //! # Example
 //! ```
@@ -90,7 +90,7 @@ impl Spinlock {
             // dmb required before allow access to the protected resource, see:
             // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
             llvm_asm!("dmb sy");
-            // also raise a signal to indicate the spinlock has been changed (this trigger all WFE's to continue 
+            // also raise a signal to indicate the spinlock has been changed (this trigger all WFE's to continue
             // processing) but do data syncronisation barrier upfront to ensure any data updates has been finished
             llvm_asm!(
                 "dsb sy
