@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/RusPiRo/ruspiro-lock/tree/v||VERSION||"
 documentation = "https://docs.rs/ruspiro-lock/||VERSION||"
 readme = "README.md"
-keywords = ["RusPiRo", "spinlock", "semaphore", "mutex", "rwlock", "raspberrypi"]
+keywords = ["RusPiRo", "spinlock", "semaphore", "mutex", "rwlock", "raspberrypi", "asyncmutex", "asyncrwlock"]
 categories = ["no-std", "embedded"]
 edition = "2018"
 exclude = [".travis.yml", "Makefile.toml"]
@@ -23,6 +23,7 @@ is-it-maintained-open-issues = { repository = "RusPiRo/ruspiro-lock" }
 [lib]
 
 [dev-dependencies]
+# to run async unit test cases
 async-std = { version = "1.6.4", features = ["attributes", "unstable"] }
 
 [dependencies]

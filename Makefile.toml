@@ -23,11 +23,11 @@ command = "cargo"
 args = ["xbuild", "--target", "${BUILD_TARGET}", "--release", "--features", "${FEATURES}"]
 
 [tasks.pi3]
-env = { FEATURES = "ruspiro_pi3, async_locks" }
+env = { FEATURES = "ruspiro_pi3,async_locks" }
 run_task = "xbuild"
 
 [tasks.clippy]
-env = { FEATURES = "ruspiro_pi3, async_locks" }
+env = { FEATURES = "ruspiro_pi3,async_locks" }
 command = "cargo"
 args = ["clippy", "--target", "${BUILD_TARGET}", "--features", "${FEATURES}"]
 

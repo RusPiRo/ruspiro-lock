@@ -1,6 +1,6 @@
 # RusPiRo Lock crate
 
-Simple to use abstractions on low level atomic locks:
+API providing simple to use locks:
 
 - `Spinlock`: blocking lock
 - `Semaphore`: atomic lock counter blocking or non-blocking
@@ -12,7 +12,7 @@ Simple to use abstractions on low level atomic locks:
 [![Documentation](https://docs.rs/ruspiro-lock/badge.svg)](https://docs.rs/ruspiro-lock)
 [![License](https://img.shields.io/crates/l/ruspiro-lock.svg)](https://github.com/RusPiRo/ruspiro-lock#license)
 
-# Usage
+## Usage
 
 To use this crate simply add the dependency to your ``Cargo.toml`` file:
 
@@ -23,7 +23,7 @@ ruspiro-lock = "0.4.0"
 
 Once done the definition and usage of the locks is as follows. Keep in mind to share those locking primitives accross cores or threads they should be wrapped in an ``Arc``.
 
-## Spinlock
+### Spinlock
 
 ```rust
 use ruspiro_lock::Spinlock;
@@ -37,7 +37,7 @@ fn main() {
 }
 ```
 
-## Semaphore
+### Semaphore
 
 ```rust
 use ruspiro_lock::Semaphore;
@@ -52,7 +52,7 @@ fn main() {
 }
 ```
 
-## Mutex
+### Mutex
 
 ```rust
 use ruspiro_lock::Mutex;
@@ -74,6 +74,32 @@ fn main() {
     // the lock get's available
     let mut data = mutex.lock();
     *data = 12;
+}
+```
+
+### RWLock
+
+```rust
+use ruspiro_lock::RWLock;
+
+fn main() {
+    let rwlock = Arc::new(RWLock::new(0u32));
+    let rwlock_clone = Arc::clone(&rwlock);
+    {
+        // try_lock and lock will provide a WriteLockGuard
+        let mut data = rwlock.lock();
+        *data = 20;
+        // if a write lock exists no other write or  read lock's could be aquired
+        assert!(rwlock_clone.try_lock().is_none());
+        assert!(rwlock_clone.try_read().is_none());
+    }
+    {
+        // multiple read locks are possible
+        let data = rwlock.read();
+        // if a write lock exists no other write or  read lock's could be aquired
+        assert!(rwlock_clone.try_read().is_some());
+        println!("{}", *data);
+    }
 }
 ```
 

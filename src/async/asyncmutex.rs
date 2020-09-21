@@ -195,12 +195,14 @@ mod tests {
             **guard = 20;
             // with the AsyncMutexLock in place wait a second to keep the guard
             // alive and let the second task relly wait for this one
+            task::yield_now().await;
             task::sleep(Duration::from_secs(1)).await;
         });
 
         let task2 = task::spawn( async move {
             // if this async is started first wait a bit to really run the
             // other one first to aquire the AsyncMutexLock
+            task::yield_now().await;
             task::sleep(Duration::from_millis(100)).await;
             let guard = mutex.lock().await;
             let value = **guard;
