@@ -1,24 +1,40 @@
 [package]
 name = "ruspiro-lock"
 authors = ["André Borrmann <pspwizard@gmx.de>"]
-version = "0.3.3" # remember to update html_root_url
+version = "0.4.0" # remember to update html_root_url
 description = """
-Simple atomic locking and safe data access (mutual exclusive) cross cores on Raspberry Pi.
+Providing Spinlock, Semaphore and mutual exclusive data access for cross core
+usage on Raspberry Pi.
 """
-license = "Apache-2.0"
-repository = "https://github.com/RusPiRo/ruspiro-lock/tree/v0.3.3"
-documentation = "https://docs.rs/ruspiro-lock/0.3.3"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/RusPiRo/ruspiro-lock/tree/v||VERSION||"
+documentation = "https://docs.rs/ruspiro-lock/||VERSION||"
 readme = "README.md"
-keywords = ["RusPiRo", "spinlock", "semaphore", "datalock", "raspberrypi"]
+keywords = ["RusPiRo", "spinlock", "semaphore", "mutex", "rwlock", "raspberrypi", "asyncmutex", "asyncrwlock"]
 categories = ["no-std", "embedded"]
 edition = "2018"
+exclude = [".travis.yml", "Makefile.toml"]
 
 [badges]
 travis-ci = { repository = "RusPiRo/ruspiro-lock", branch = "master" }
 maintenance = { status = "actively-developed" }
+is-it-maintained-open-issues = { repository = "RusPiRo/ruspiro-lock" }
 
 [lib]
+
+[dev-dependencies]
+# to run async unit test cases
+async-std = { version = "1.6.4", features = ["attributes", "unstable"] }
 
 [dependencies]
 
 [features]
+ruspiro_pi3 = []
+async_locks = []
+
+# ensure the required features of the crate are active for the doc.rs build
+[package.metadata.docs.rs]
+features = [
+    "ruspiro_pi3",
+    "async_locks"
+]
