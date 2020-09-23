@@ -13,7 +13,7 @@
 //!
 //! # Example
 //! ```
-//! use ruspiro_lock::Spinlock;
+//! use ruspiro_lock::sync::Spinlock;
 //!
 //! static LOCK: Spinlock = Spinlock::new();
 //!
@@ -40,7 +40,7 @@ impl Spinlock {
     /// Create a new Spinlock. To ensure it is shared between cores, it's typically assigned to a static variable
     /// # Example
     /// ```
-    /// # use ruspiro_lock::Spinlock;
+    /// # use ruspiro_lock::sync::Spinlock;
     /// static LOCK: Spinlock = Spinlock::new();
     /// ```
     pub const fn new() -> Spinlock {
@@ -52,7 +52,7 @@ impl Spinlock {
     /// Aquire a spinlock. This will block the current core until the lock could be aquired.
     /// # Example
     /// ```no_run
-    /// # use ruspiro_lock::Spinlock;
+    /// # use ruspiro_lock::sync::Spinlock;
     /// static LOCK: Spinlock = Spinlock::new();
     /// # fn main() {
     ///     LOCK.aquire();
@@ -75,7 +75,7 @@ impl Spinlock {
     /// Release an aquired spinlock.
     /// # Example
     /// ```no_run
-    /// # use ruspiro_lock::Spinlock;
+    /// # use ruspiro_lock::sync::Spinlock;
     /// static LOCK: Spinlock = Spinlock::new();
     /// # fn main() {
     ///     LOCK.release();

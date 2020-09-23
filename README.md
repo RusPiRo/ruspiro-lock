@@ -7,7 +7,7 @@ API providing simple to use locks:
 - `Mutex`: blocking lock to ensure mutual exclusive to its interior.
 - `RWLock`: blocking lock to provide multiple immutable and exclusive mutable access to its interior.
 
-[![Travis-CI Status](https://api.travis-ci.com/RusPiRo/ruspiro-lock.svg?branch=master)](https://travis-ci.com/RusPiRo/ruspiro-lock)
+[![Travis-CI Status](https://api.travis-ci.com/RusPiRo/ruspiro-lock.svg?branch=release)](https://travis-ci.com/RusPiRo/ruspiro-lock)
 [![Latest Version](https://img.shields.io/crates/v/ruspiro-lock.svg)](https://crates.io/crates/ruspiro-lock)
 [![Documentation](https://docs.rs/ruspiro-lock/badge.svg)](https://docs.rs/ruspiro-lock)
 [![License](https://img.shields.io/crates/l/ruspiro-lock.svg)](https://github.com/RusPiRo/ruspiro-lock#license)
@@ -18,7 +18,7 @@ To use this crate simply add the dependency to your ``Cargo.toml`` file:
 
 ```toml
 [dependencies]
-ruspiro-lock = "0.4.0"
+ruspiro-lock = "||VERSION||"
 ```
 
 Once done the definition and usage of the locks is as follows. Keep in mind to share those locking primitives accross cores or threads they should be wrapped in an ``Arc``.

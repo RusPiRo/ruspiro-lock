@@ -13,7 +13,7 @@
 //!
 //! # Example
 //! ```
-//! use ruspiro_lock::Semaphore;
+//! use ruspiro_lock::sync::Semaphore;
 //!
 //! static SEMA: Semaphore = Semaphore::new(1);
 //!
@@ -37,7 +37,7 @@ impl Semaphore {
     /// Instantiate a new semaphore with a given initial value
     /// # Example
     /// ```
-    /// # use ruspiro_lock::Semaphore;
+    /// # use ruspiro_lock::sync::Semaphore;
     /// # fn doc() {
     ///     let mut sema = Semaphore::new(5); // semaphore could be used/aquired 5 times
     /// # }
@@ -52,7 +52,7 @@ impl Semaphore {
     ///
     /// # Example
     /// ```no_run
-    /// # use ruspiro_lock::Semaphore;
+    /// # use ruspiro_lock::sync::Semaphore;
     /// # fn doc() {
     ///     let mut sema = Semaphore::new(0);
     ///     sema.up(); // the counter of the semaphore will be increased
@@ -81,7 +81,7 @@ impl Semaphore {
     ///
     /// # Example
     /// ```no_run
-    /// # use ruspiro_lock::Semaphore;
+    /// # use ruspiro_lock::sync::Semaphore;
     /// # fn doc() {
     ///     let sema = Semaphore::new(0);
     ///     sema.down();
@@ -107,7 +107,7 @@ impl Semaphore {
     ///
     /// # Example
     /// ```
-    /// # use ruspiro_lock::Semaphore;
+    /// # use ruspiro_lock::sync::Semaphore;
     /// # fn doc() {
     ///     let sema = Semaphore::new(0);
     ///     if sema.try_down().is_ok() {
