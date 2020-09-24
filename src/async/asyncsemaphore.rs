@@ -58,7 +58,7 @@ impl AsyncSemaphore {
     }
 }
 
-/// The `Future` that represents an `await`able semaphore down request to an [AsyncSemaphore] and can only be created 
+/// The `Future` that represents an `await`able semaphore down request to an [AsyncSemaphore] and can only be created
 /// from functions of the [AsyncSemaphore]
 struct AsyncSemaphoreFuture {
     inner: Arc<Mutex<AsyncSemaphoreInner>>,

@@ -34,7 +34,6 @@ pub struct AsyncMutex<T> {
 impl<T> AsyncMutex<T> {
     /// Create the [AsyncMutex]
     pub fn new(value: T) -> Self {
-
         Self {
             inner: Arc::new(Mutex::new(AsyncMutexInner::new())),
             data: Arc::new(Mutex::new(value)),
@@ -61,12 +60,7 @@ impl<T> AsyncMutex<T> {
 
             // once we have updated the metadata we can release the lock to it and create the `Future` that will yield
             // the lock to the data once available
-            AsyncMutexFuture::new(
-                Arc::clone(&self.inner),
-                Arc::clone(&self.data),
-                current_id,
-            )
-            .await
+            AsyncMutexFuture::new(Arc::clone(&self.inner), Arc::clone(&self.data), current_id).await
         }
     }
 }
@@ -118,11 +112,7 @@ struct AsyncMutexFuture<'a, T: ?Sized> {
 }
 
 impl<T> AsyncMutexFuture<'_, T> {
-    fn new(
-        inner: Arc<Mutex<AsyncMutexInner>>,
-        data: Arc<Mutex<T>>,
-        id: usize,
-    ) -> Self {
+    fn new(inner: Arc<Mutex<AsyncMutexInner>>, data: Arc<Mutex<T>>, id: usize) -> Self {
         Self {
             inner,
             data,
@@ -177,19 +167,18 @@ impl AsyncMutexInner {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
+    use super::*;
     use async_std::prelude::*;
     use async_std::task;
     use core::time::Duration;
-    use super::*;
 
     #[async_std::test]
     async fn wait_on_mutex() {
         let mutex = Arc::new(AsyncMutex::new(10_u32));
         let mutex_clone = Arc::clone(&mutex);
-        
+
         let task1 = task::spawn(async move {
             let mut guard = mutex_clone.lock().await;
             **guard = 20;
@@ -199,7 +188,7 @@ mod tests {
             task::sleep(Duration::from_secs(1)).await;
         });
 
-        let task2 = task::spawn( async move {
+        let task2 = task::spawn(async move {
             // if this async is started first wait a bit to really run the
             // other one first to aquire the AsyncMutexLock
             task::yield_now().await;
@@ -208,7 +197,7 @@ mod tests {
             let value = **guard;
             assert_eq!(20, value);
         });
-        
+
         // run both tasks concurrently
         task1.join(task2).await;
     }
