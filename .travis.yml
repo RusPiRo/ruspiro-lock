@@ -9,7 +9,7 @@ language: rust
 
 rust:
 # build nightly only for the time beeing
-  - nightly
+  - nightly-2020-09-20
 
 # define the stages and their order
 stages:
