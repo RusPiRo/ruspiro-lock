@@ -347,16 +347,14 @@ mod tests {
             let guard = rwlock_clone.read().await;
             // with the AsyncReadLock in place wait a second to keep the guard
             // alive and let the second task relly wait for this one
-            task::yield_now().await;
-            task::sleep(Duration::from_secs(1)).await;
+            task::sleep(Duration::from_secs(10)).await;
             println!("{}", **guard);
         });
 
         let task2 = task::spawn(async move {
             // if this async is started first wait a bit to really run the
             // other one first to aquire the AsyncWriteLock
-            task::yield_now().await;
-            task::sleep(Duration::from_secs(1)).await;
+            task::sleep(Duration::from_secs(5)).await;
             let mut guard = rwlock.lock().await;
             **guard = 20;
         });
