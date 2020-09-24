@@ -31,7 +31,7 @@
 //!
 //! ## Spinlock
 //! ```
-//! use ruspiro_lock::Spinlock;
+//! use ruspiro_lock::sync::Spinlock;
 //!
 //! fn main() {
 //!     let spin = Spinlock::new();
@@ -44,7 +44,7 @@
 //!
 //! ## Semaphore
 //! ```
-//! use ruspiro_lock::Semaphore;
+//! use ruspiro_lock::sync::Semaphore;
 //!
 //! fn main() {
 //!     let sema  = Semaphore::new(1);
@@ -58,7 +58,7 @@
 //!
 //! ## Mutex
 //! ```
-//! use ruspiro_lock::Mutex;
+//! use ruspiro_lock::sync::Mutex;
 //!
 //! fn main() {
 //!     let mutex = Mutex::new(0u32);

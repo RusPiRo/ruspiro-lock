@@ -13,6 +13,7 @@ This version provides a major refactoring to introduce commonly used names for t
   - Rename `DataLock` to `Mutex`
   - Rename `DataRWLock` to `RWLock`
   - Introducing the enhances travis-ci pipeline to build and publish this crate
+  - pipeline build with an older nightly version due to this [issue](https://github.com/rust-lang/rust/issues/76801#issuecomment-697150736)
 
 ## :carrot: v0.3.3
 

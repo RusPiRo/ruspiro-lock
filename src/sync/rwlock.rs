@@ -105,9 +105,7 @@ impl<T> RWLock<T> {
         } else {
             self.read_locks.fetch_add(1, Ordering::Acquire);
             //println!("read lock aquired {:?}", core::any::type_name::<T>());
-            return Some(
-                ReadLockGuard { _data: self }
-            );
+            return Some(ReadLockGuard { _data: self });
         }
     }
 
@@ -219,7 +217,6 @@ impl<T> Deref for ReadLockGuard<'_, T> {
 /// The RWLock is always `Sync`, to make it `Send` as well it need to be wrapped into an `Arc`.
 unsafe impl<T> Sync for RWLock<T> {}
 
-
 #[cfg(test)]
 mod tests {
     extern crate alloc;
@@ -253,7 +250,7 @@ mod tests {
         let rwlock = Arc::new(RWLock::new(0u32));
         let rwlock_clone = Arc::clone(&rwlock);
         // try_lock and lock will provide a WriteLock
-        let data = rwlock.read();        
+        let data = rwlock.read();
         // if a write lock exists no read lock's could be aquired
         assert!(rwlock_clone.try_read().is_some());
         println!("{}", *data);
@@ -264,7 +261,7 @@ mod tests {
         let rwlock = Arc::new(RWLock::new(0u32));
         let rwlock_clone = Arc::clone(&rwlock);
         // try_lock and lock will provide a WriteLock
-        let data = rwlock.read();        
+        let data = rwlock.read();
         // if a write lock exists no read lock's could be aquired
         assert!(rwlock_clone.try_lock().is_none());
         println!("{}", *data);

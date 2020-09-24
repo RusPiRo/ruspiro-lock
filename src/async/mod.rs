@@ -7,7 +7,7 @@
 
 //! # Async Locking
 //!
-//! 
+//!
 
 mod asyncmutex;
 #[doc(inline)]

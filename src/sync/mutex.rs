@@ -13,7 +13,7 @@
 //!
 //! # Example
 //! ```
-//! use ruspiro_lock::Mutex;
+//! use ruspiro_lock::sync::Mutex;
 //!
 //! static DATA: Mutex<u32> = Mutex::new(0);
 //!
@@ -68,7 +68,7 @@ impl<T> Mutex<T> {
     ///
     /// # Example
     /// ```
-    /// # use ruspiro_lock::Mutex;
+    /// # use ruspiro_lock::sync::Mutex;
     /// static DATA: Mutex<u32> = Mutex::new(10);
     /// # fn main() {
     ///     if let Some(data) = DATA.try_lock() {
@@ -101,7 +101,7 @@ impl<T> Mutex<T> {
     ///
     /// # Example
     /// ```
-    /// # use ruspiro_lock::Mutex;
+    /// # use ruspiro_lock::sync::Mutex;
     /// static DATA: Mutex<u32> = Mutex::new(10);
     /// # fn main() {
     ///     let mut data = DATA.lock();
