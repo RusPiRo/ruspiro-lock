@@ -90,6 +90,19 @@ impl<T> AsyncRWLock<T> {
                 .await
         }
     }
+
+    /// Provide the inner data wrapped by this [AsyncMutex]. This will only provide the contained data if there is only 
+    /// one active reference to it. If the data is still shared more than once, eg. because there are active `Future`s 
+    /// awaiting a lock this will return the actual `AsyncMutex` in the `Err` variant.
+    pub fn into_inner(self) -> Result<T, Self> {
+        match Arc::try_unwrap(self.data) {
+            Ok(data) => Ok(data.into_inner()),
+            Err(origin) => Err(Self {
+                inner: self.inner,
+                data: origin,
+            }),
+        }
+    }
 }
 
 pub struct AsyncWriteLockGuard<'a, T> {
@@ -367,5 +380,16 @@ mod tests {
 
         let guard = rwlock_clone2.read().await;
         assert_eq!(20, **guard);
+    }
+
+    #[test]
+    fn rwlock_to_inner() {
+        let rwlock = AsyncRWLock::new(10);
+        let inner = rwlock.into_inner();
+        match inner {
+            Ok(data) => assert_eq!(data, 10),
+            _ => panic!("unable to get inner data")
+        }
+        
     }
 }

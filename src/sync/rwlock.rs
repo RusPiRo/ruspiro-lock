@@ -101,11 +101,11 @@ impl<T> RWLock<T> {
     pub fn try_read(&self) -> Option<ReadLockGuard<T>> {
         // read locks can only handed out if no write lock is existing already
         if self.write_lock.load(Ordering::Relaxed) {
-            return None;
+            None
         } else {
             self.read_locks.fetch_add(1, Ordering::Acquire);
             //println!("read lock aquired {:?}", core::any::type_name::<T>());
-            return Some(ReadLockGuard { _data: self });
+            Some(ReadLockGuard { _data: self })
         }
     }
 
@@ -136,6 +136,14 @@ impl<T> RWLock<T> {
     /// accessor of the RWLock until the returned borrow goes out of scope.
     pub unsafe fn as_ref_unchecked(&self) -> &T {
         &*self.data.get()
+    }
+
+    /// Consume the Mutex and return the inner value
+    pub fn into_inner(self) -> T
+    where
+        T: Sized,
+    {
+        self.data.into_inner()
     }
 }
 
@@ -217,7 +225,7 @@ impl<T> Deref for ReadLockGuard<'_, T> {
 /// The RWLock is always `Sync`, to make it `Send` as well it need to be wrapped into an `Arc`.
 unsafe impl<T> Sync for RWLock<T> {}
 
-#[cfg(test)]
+#[cfg(testing)]
 mod tests {
     extern crate alloc;
     use super::*;
