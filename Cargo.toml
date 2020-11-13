@@ -1,7 +1,7 @@
 [package]
 name = "ruspiro-lock"
 authors = ["André Borrmann <pspwizard@gmx.de>"]
-version = "0.4.0" # remember to update html_root_url
+version = "0.4.1" # remember to update html_root_url
 description = """
 Providing Spinlock, Semaphore and mutual exclusive data access for cross core
 usage on Raspberry Pi.
@@ -24,7 +24,7 @@ is-it-maintained-open-issues = { repository = "RusPiRo/ruspiro-lock" }
 
 [dev-dependencies]
 # to run async unit test cases
-async-std = { version = "1.6.4", features = ["attributes", "unstable"] }
+async-std = { version = "1.7.0", features = ["attributes", "unstable"] }
 
 [dependencies]
 

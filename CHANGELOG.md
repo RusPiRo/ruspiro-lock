@@ -1,5 +1,11 @@
 # Changelog
 
+## :peach: v0.4.1
+
+- ### :bulb: Features
+
+  - provide method `into_inner` for the `Mutex`, `RWLock` and their async variation to be able move the contained the sealed data out of the locks.
+
 ## :peach: v0.4.0
 
 This version provides a major refactoring to introduce commonly used names for the different kinds of locks. `Datalock` becomes `Mutex` and `DataRWlock` becomes `RWLock`. With a feature gate also `async` versions of those locks are introduced.
