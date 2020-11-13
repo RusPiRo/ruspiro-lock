@@ -123,6 +123,14 @@ impl<T> Mutex<T> {
             }
         }
     }
+
+    /// Consume the Mutex and return the inner value
+    pub fn into_inner(self) -> T
+    where
+        T: Sized,
+    {
+        self.data.into_inner()
+    }
 }
 
 impl<T> core::fmt::Debug for Mutex<T>

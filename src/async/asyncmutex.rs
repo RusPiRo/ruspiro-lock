@@ -63,6 +63,19 @@ impl<T> AsyncMutex<T> {
             AsyncMutexFuture::new(Arc::clone(&self.inner), Arc::clone(&self.data), current_id).await
         }
     }
+
+    /// Provide the inner data wrapped by this [AsyncMutex]. This will only provide the contained data if there is only 
+    /// one active reference to it. If the data is still shared more than once, eg. because there are active `Future`s 
+    /// awaiting a lock this will return the actual `AsyncMutex` in the `Err` variant.
+    pub fn into_inner(self) -> Result<T, Self> {
+        match Arc::try_unwrap(self.data) {
+            Ok(data) => Ok(data.into_inner()),
+            Err(origin) => Err(Self {
+                inner: self.inner,
+                data: origin,
+            }),
+        }
+    }
 }
 
 pub struct AsyncMutexGuard<'a, T> {
@@ -149,6 +162,7 @@ impl<'a, T> Future for AsyncMutexFuture<'a, T> {
         }
     }
 }
+
 struct AsyncMutexInner {
     /// If the lock could not be aquired we store the requestor id here to allow the next one
     /// already waiting for the lock to retrieve it
@@ -200,5 +214,16 @@ mod tests {
 
         // run both tasks concurrently
         task1.join(task2).await;
+    }
+
+    #[test]
+    fn mutex_to_inner() {
+        let mutex = AsyncMutex::new(10);
+        let inner = mutex.into_inner();
+        match inner {
+            Ok(data) => assert_eq!(data, 10),
+            _ => panic!("unable to get inner data")
+        }
+        
     }
 }
