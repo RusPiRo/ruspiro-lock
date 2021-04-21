@@ -1,5 +1,9 @@
 # Changelog
 
+## :peach: v0.4.2
+
+This is a maintenance release only - migrating the pipeline to github actions.
+
 ## :peach: v0.4.1
 
 - ### :bulb: Features

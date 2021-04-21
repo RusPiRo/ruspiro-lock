@@ -7,7 +7,7 @@ API providing simple to use locks:
 - `Mutex`: blocking lock to ensure mutual exclusive to its interior.
 - `RWLock`: blocking lock to provide multiple immutable and exclusive mutable access to its interior.
 
-[![Travis-CI Status](https://api.travis-ci.com/RusPiRo/ruspiro-lock.svg?branch=release)](https://travis-ci.com/RusPiRo/ruspiro-lock)
+![CI](https://github.com/RusPiRo/ruspiro-lock/workflows/CI/badge.svg?branch=development)
 [![Latest Version](https://img.shields.io/crates/v/ruspiro-lock.svg)](https://crates.io/crates/ruspiro-lock)
 [![Documentation](https://docs.rs/ruspiro-lock/badge.svg)](https://docs.rs/ruspiro-lock)
 [![License](https://img.shields.io/crates/l/ruspiro-lock.svg)](https://github.com/RusPiRo/ruspiro-lock#license)
