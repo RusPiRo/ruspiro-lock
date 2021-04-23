@@ -79,10 +79,8 @@
 //! }
 //! ```
 
-// re-export the sync lock types
+// re-export the sync lock types, always at root level and witin the sync module
 pub mod sync;
-// if the async feature is not enabled export the sync locks at the crates root level
-#[cfg(not(any(feature = "async_locks", doc)))]
 pub use sync::*;
 
 #[cfg(any(feature = "async_locks", doc))]
