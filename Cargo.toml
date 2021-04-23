@@ -1,7 +1,7 @@
 [package]
 name = "ruspiro-lock"
 authors = ["André Borrmann <pspwizard@gmx.de>"]
-version = "0.4.1" # remember to update html_root_url
+version = "0.4.2" # remember to update html_root_url
 description = """
 Providing Spinlock, Semaphore and mutual exclusive data access for cross core
 usage on Raspberry Pi.
@@ -13,12 +13,10 @@ readme = "README.md"
 keywords = ["RusPiRo", "spinlock", "semaphore", "mutex", "rwlock"]
 categories = ["no-std", "embedded"]
 edition = "2018"
-exclude = [".travis.yml", "Makefile.toml"]
+exclude = ["Makefile.toml", ".cargo/config.toml"]
 
 [badges]
-travis-ci = { repository = "RusPiRo/ruspiro-lock", branch = "master" }
 maintenance = { status = "actively-developed" }
-is-it-maintained-open-issues = { repository = "RusPiRo/ruspiro-lock" }
 
 [lib]
 
@@ -29,13 +27,11 @@ async-std = { version = "1.7.0", features = ["attributes", "unstable"] }
 [dependencies]
 
 [features]
-ruspiro_pi3 = []
 async_locks = []
 
 # ensure the required features of the crate are active for the doc.rs build
 [package.metadata.docs.rs]
-targets = ["aarch64-unknown-none", "aarch64-unknown-linux-gnu"]
+default-target = "aarch64-unknown-linux-gnu"
 features = [
-    "ruspiro_pi3",
     "async_locks"
 ]
