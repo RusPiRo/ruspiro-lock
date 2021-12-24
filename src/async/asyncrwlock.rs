@@ -65,6 +65,20 @@ impl<T> AsyncRWLock<T> {
     }
   }
 
+  pub fn lock_blocking(&self) -> WriteLockGuard<'_, T> {
+    loop {
+      if let Some(write_guard) = self.data.try_lock() {
+        return write_guard;
+      }
+      // to save energy and cpu consumption we can wait for an event beeing raised that indicates that the
+      // semaphore value has likely beeing changed
+      #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
+      unsafe {
+        asm!("wfe");
+      }
+    }
+  }
+
   /// Locking the data for read access secured by the [AsyncRWLock] will yield a `Future` that must be awaited to
   /// actually acquire the lock.
   pub async fn read(&self) -> AsyncReadLockGuard<'_, T> {
@@ -103,7 +117,7 @@ impl<T> AsyncRWLock<T> {
   }
 }
 
-pub struct AsyncWriteLockGuard<'a, T> {
+pub struct AsyncWriteLockGuard<'a, T: 'a> {
   guard: WriteLockGuard<'a, T>,
   inner: Arc<Mutex<AsyncRWLockInner>>,
 }
@@ -141,7 +155,7 @@ impl<T> Drop for AsyncWriteLockGuard<'_, T> {
   }
 }
 
-pub struct AsyncReadLockGuard<'a, T> {
+pub struct AsyncReadLockGuard<'a, T: 'a> {
   guard: ReadLockGuard<'a, T>,
   inner: Arc<Mutex<AsyncRWLockInner>>,
 }
@@ -222,7 +236,7 @@ impl<'a, T> Future for AsyncWriteLockFuture<'a, T> {
 
 /// The `Future` that represents an `await`able read lock request of an [AsynRWLock] and can only be created from the
 /// functions of [AsyncRWLock].
-struct AsyncReadLockFuture<'a, T: ?Sized> {
+struct AsyncReadLockFuture<'a, T> {
   inner: Arc<Mutex<AsyncRWLockInner>>,
   data: Arc<RWLock<T>>,
   id: usize,
