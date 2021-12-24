@@ -175,6 +175,6 @@ jobs:
           sed -i -e 's/||VERSION||/'$CRATE_VERSION'/g' README.md
         
       - name: Publish
-         env:
+        env:
           CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
         run: cargo make -t publish --profile pipeline
