@@ -24,6 +24,7 @@
 //!     LOCK.release(); // releasing the lock
 //! }
 //! ```
+use core::arch::asm;
 use core::sync::atomic::{AtomicBool, Ordering};
 
 /// A blocking cross core lock to guarantee mutual exclusive access. While this lock might block other cores

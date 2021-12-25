@@ -17,12 +17,9 @@ CFLAGS = "-march=armv8-a -Wall -O3 -nostdlib -nostartfiles -ffreestanding -mtune
 RUSTFLAGS = "-C linker=${CC} -C target-cpu=cortex-a53"
 
 [tasks.build]
+env = { FEATURES = "async_locks" }
 command = "cargo"
 args = ["build", "--release", "--features", "${FEATURES}"]
-
-[tasks.pi3]
-env = { FEATURES = "async_locks" }
-run_task = "build"
 
 [tasks.clippy]
 env = { FEATURES = "async_locks" }

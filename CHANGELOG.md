@@ -1,5 +1,13 @@
 # Changelog
 
+## :melon: v0.5.0
+
+- ### :wrench: Maintenance
+
+  - Enable the crate to build with the latest nightly version and also fix this in the `rust-toolchain.toml` file.
+  - use Rust edition 2021
+  - Rename the RWLock functions that provides a write lock from `lock` to `write`. This corresponds to read lock provided by the `read` functions.
+
 ## :peach: v0.4.3
 
 - ### :wrench: Maintenance
