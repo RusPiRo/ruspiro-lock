@@ -67,7 +67,10 @@ impl<T> AsyncMutex<T> {
   /// Provide the inner data wrapped by this [AsyncMutex]. This will only provide the contained data if there is only
   /// one active reference to it. If the data is still shared more than once, eg. because there are active `Future`s
   /// awaiting a lock this will return the actual `AsyncMutex` in the `Err` variant.
-  pub fn into_inner(self) -> Result<T, Self> {
+  pub fn into_inner(self) -> Result<T, Self>
+  where
+    T: Sized,
+  {
     match Arc::try_unwrap(self.data) {
       Ok(data) => Ok(data.into_inner()),
       Err(origin) => Err(Self {
@@ -78,7 +81,7 @@ impl<T> AsyncMutex<T> {
   }
 }
 
-pub struct AsyncMutexGuard<'a, T> {
+pub struct AsyncMutexGuard<'a, T: 'a> {
   guard: MutexGuard<'a, T>,
   inner: Arc<Mutex<AsyncMutexInner>>,
 }
@@ -117,7 +120,7 @@ impl<T> Drop for AsyncMutexGuard<'_, T> {
 }
 
 /// The `Future` that represents an `await`able [AsynMutex] and can only be created from the functions of [AsyncMutex].
-struct AsyncMutexFuture<'a, T: ?Sized> {
+struct AsyncMutexFuture<'a, T: 'a> {
   inner: Arc<Mutex<AsyncMutexInner>>,
   data: Arc<Mutex<T>>,
   id: usize,

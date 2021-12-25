@@ -36,6 +36,7 @@
 //!
 
 use core::cell::UnsafeCell;
+use core::fmt;
 use core::ops::{Deref, DerefMut};
 use core::sync::atomic::{AtomicBool, Ordering};
 
@@ -48,8 +49,7 @@ pub struct Mutex<T: ?Sized> {
 
 /// The MutexGuard is the result of successfully aquiring the mutual exclusive lock for the interior
 /// data. If this guard goes ot of scope the lock will be released
-#[derive(Debug)]
-pub struct MutexGuard<'a, T> {
+pub struct MutexGuard<'a, T: ?Sized + 'a> {
   _data: &'a Mutex<T>,
 }
 
@@ -61,7 +61,9 @@ impl<T> Mutex<T> {
       data: UnsafeCell::new(value),
     }
   }
+}
 
+impl<T: ?Sized> Mutex<T> {
   /// Try to lock the interior data for mutual exclusive access. Returns ``None`` if the lock failes
   /// or ``Some(MutexGuard)``. The actual data, the MutexGuard wraps could be conviniently accessed by
   /// dereferencing it.
@@ -85,7 +87,7 @@ impl<T> Mutex<T> {
       unsafe {
         // dmb required before allow access to the protected resource, see:
         // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
-        llvm_asm!("dmb sy");
+        asm!("dmb sy");
       }
 
       Some(MutexGuard { _data: self })
@@ -119,7 +121,7 @@ impl<T> Mutex<T> {
       // mutex lock have liekly been released
       #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
       unsafe {
-        llvm_asm!("wfe");
+        asm!("wfe");
       }
     }
   }
@@ -133,19 +135,23 @@ impl<T> Mutex<T> {
   }
 }
 
-impl<T> core::fmt::Debug for Mutex<T>
-where
-  T: core::fmt::Debug,
-{
-  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    f.debug_struct("Mutex")
-      .field("Value", unsafe { &*self.data.get() })
-      .finish()
+impl<T: ?Sized + fmt::Debug> fmt::Debug for Mutex<T> {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let mut dbg = f.debug_struct("Mutex");
+    match self.try_lock() {
+      Some(guard) => {
+        dbg.field("Value", &&*guard);
+      }
+      _ => {
+        dbg.field("Value", &"unable to lock");
+      }
+    }
+    dbg.finish_non_exhaustive()
   }
 }
 
 // when the MutexGuard is dropped release the owning lock
-impl<T> Drop for MutexGuard<'_, T> {
+impl<T: ?Sized> Drop for MutexGuard<'_, T> {
   fn drop(&mut self) {
     self._data.locked.swap(false, Ordering::Release);
 
@@ -153,12 +159,12 @@ impl<T> Drop for MutexGuard<'_, T> {
     unsafe {
       // dmb required before allow access to the protected resource, see:
       // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
-      llvm_asm!("dmb sy");
+      asm!("dmb sy");
       // also raise a signal to indicate the mutex has been changed (this trigger all WFE's to continue
       // processing) but do data syncronisation barrier upfront to ensure any data updates has been finished
-      llvm_asm!(
+      asm!(
         "dsb sy
-                 sev"
+         sev"
       );
     }
   }
@@ -168,7 +174,7 @@ impl<T> Drop for MutexGuard<'_, T> {
 // this ok as the MutexGuard does only exist if the exclusive access to the data could
 // be ensured. Therefore also only one `MutexGuard` could ever exist for one specific ``Mutex``, which makes it
 // safe to return immutable and mutable references.
-impl<T> Deref for MutexGuard<'_, T> {
+impl<T: ?Sized> Deref for MutexGuard<'_, T> {
   type Target = T;
 
   fn deref(&self) -> &T {
@@ -176,11 +182,18 @@ impl<T> Deref for MutexGuard<'_, T> {
   }
 }
 
-impl<T> DerefMut for MutexGuard<'_, T> {
+impl<T: ?Sized> DerefMut for MutexGuard<'_, T> {
   fn deref_mut(&mut self) -> &mut T {
     unsafe { &mut *self._data.data.get() }
   }
 }
 
+/// implement debug trait to forward to the type wrapped within the guard
+impl<T: ?Sized + fmt::Debug> fmt::Debug for MutexGuard<'_, T> {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fmt::Debug::fmt(&**self, f)
+  }
+}
+
 /// The Mutex is always `Sync`, to make it `Send` as well it need to be wrapped into an `Arc`.
-unsafe impl<T> Sync for Mutex<T> {}
+unsafe impl<T: ?Sized + Send> Sync for Mutex<T> {}

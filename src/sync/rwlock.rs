@@ -26,15 +26,13 @@ pub struct RWLock<T: ?Sized> {
 
 /// Result of trying to access the data using ``try_lock`` or ``lock`` on the data lock. If the
 /// result goes out of scope the write lock is released.
-#[derive(Debug)]
-pub struct WriteLockGuard<'a, T> {
+pub struct WriteLockGuard<'a, T: ?Sized + 'a> {
   _data: &'a RWLock<T>,
 }
 
 /// Result of aquiring read access to the data using ``read`` on the data lock. If the
 /// result goes out of scope the read lock is released.
-#[derive(Debug)]
-pub struct ReadLockGuard<'a, T> {
+pub struct ReadLockGuard<'a, T: ?Sized + 'a> {
   _data: &'a RWLock<T>,
 }
 
@@ -47,7 +45,9 @@ impl<T> RWLock<T> {
       data: UnsafeCell::new(value),
     }
   }
+}
 
+impl<T: ?Sized> RWLock<T> {
   /// Try to lock the guarded data for mutual exclusive access. Returns ``None`` if the lock fails
   /// or ``Some(WriteLockGuard)``. The actual data, the [WriteLockGuard] wraps could be conviniently accessed by
   /// dereferencing it.
@@ -65,7 +65,7 @@ impl<T> RWLock<T> {
       unsafe {
         // dmb required before allow access to the protected resource, see:
         // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
-        llvm_asm!("dmb sy");
+        asm!("dmb sy");
       }
 
       Some(WriteLockGuard { _data: self })
@@ -90,7 +90,7 @@ impl<T> RWLock<T> {
       // semaphore value has likely beeing changed
       #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
       unsafe {
-        llvm_asm!("wfe");
+        asm!("wfe");
       }
     }
   }
@@ -124,7 +124,7 @@ impl<T> RWLock<T> {
       // lock value has likely beeing changed
       #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
       unsafe {
-        llvm_asm!("wfe");
+        asm!("wfe");
       }
     }
   }
@@ -147,20 +147,27 @@ impl<T> RWLock<T> {
   }
 }
 
-impl<T> fmt::Debug for RWLock<T>
+impl<T: ?Sized + fmt::Debug> fmt::Debug for RWLock<T>
 where
   T: fmt::Debug,
 {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    f.debug_struct("DataLock")
-      .field("Value", unsafe { &*self.data.get() })
-      .field("ReadLocks", &self.read_locks)
-      .finish()
+    let mut dbg = f.debug_struct("DataLock");
+    match self.try_read() {
+      Some(guard) => {
+        dbg.field("Value", &&*guard);
+      }
+      _ => {
+        dbg.field("Value", &"unable to r-lock");
+      }
+    }
+    dbg.field("ReadLocks", &self.read_locks);
+    dbg.finish_non_exhaustive()
   }
 }
 
 // when the WriteLockGuard is dropped release the owning lock
-impl<T> Drop for WriteLockGuard<'_, T> {
+impl<T: ?Sized> Drop for WriteLockGuard<'_, T> {
   fn drop(&mut self) {
     self._data.write_lock.store(false, Ordering::Release);
     //println!("write lock released {:?}", core::any::type_name::<T>());
@@ -169,19 +176,19 @@ impl<T> Drop for WriteLockGuard<'_, T> {
     unsafe {
       // dmb required before allow access to the protected resource, see:
       // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
-      llvm_asm!("dmb sy");
+      asm!("dmb sy");
       // also raise a signal to indicate the semaphore has been changed (this trigger all WFE's to continue
       // processing) but do data syncronisation barrier upfront to ensure any data updates has been finished
-      llvm_asm!(
+      asm!(
         "dsb sy
-                 sev"
+         sev"
       );
     }
   }
 }
 
 // when the ReadLockGuard is dropped release the owning lock
-impl<T> Drop for ReadLockGuard<'_, T> {
+impl<T: ?Sized> Drop for ReadLockGuard<'_, T> {
   fn drop(&mut self) {
     self._data.read_locks.fetch_sub(1, Ordering::Release);
     //println!("read lock released {:?}", core::any::type_name::<T>());
@@ -190,7 +197,7 @@ impl<T> Drop for ReadLockGuard<'_, T> {
     unsafe {
       // dmb required after atomic operations, see:
       // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
-      llvm_asm!("dmb sy");
+      asm!("dmb sy");
     }
   }
 }
@@ -199,7 +206,7 @@ impl<T> Drop for ReadLockGuard<'_, T> {
 // this is ok as the DataWriteLock does only exist if the exclusive access to the data could
 // be ensured. Therefore also only one ``WriteLockGuard`` could ever exist for one specific ``RWLock``, which makes
 // it safe to return immutable and mutable references.
-impl<T> Deref for WriteLockGuard<'_, T> {
+impl<T: ?Sized> Deref for WriteLockGuard<'_, T> {
   type Target = T;
 
   fn deref(&self) -> &T {
@@ -207,14 +214,14 @@ impl<T> Deref for WriteLockGuard<'_, T> {
   }
 }
 
-impl<T> DerefMut for WriteLockGuard<'_, T> {
+impl<T: ?Sized> DerefMut for WriteLockGuard<'_, T> {
   fn deref_mut(&mut self) -> &mut T {
     unsafe { &mut *self._data.data.get() }
   }
 }
 
 // the ``ReadLockGuard`` can only be immutable dereferenced
-impl<T> Deref for ReadLockGuard<'_, T> {
+impl<T: ?Sized> Deref for ReadLockGuard<'_, T> {
   type Target = T;
 
   fn deref(&self) -> &T {
@@ -222,8 +229,22 @@ impl<T> Deref for ReadLockGuard<'_, T> {
   }
 }
 
+/// implement debug trait to forward to the type wrapped within the guard
+impl<T: ?Sized + fmt::Debug> fmt::Debug for WriteLockGuard<'_, T> {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fmt::Debug::fmt(&**self, f)
+  }
+}
+
+/// implement debug trait to forward to the type wrapped within the guard
+impl<T: ?Sized + fmt::Debug> fmt::Debug for ReadLockGuard<'_, T> {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fmt::Debug::fmt(&**self, f)
+  }
+}
+
 /// The RWLock is always `Sync`, to make it `Send` as well it need to be wrapped into an `Arc`.
-unsafe impl<T> Sync for RWLock<T> {}
+unsafe impl<T: ?Sized + Send> Sync for RWLock<T> {}
 
 #[cfg(testing)]
 mod tests {
