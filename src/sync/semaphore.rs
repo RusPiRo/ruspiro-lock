@@ -24,6 +24,7 @@
 //!     SEMA.up(); // increase the counter for another usage
 //! }
 //! ```
+use core::arch::asm;
 use core::sync::atomic::{AtomicU32, Ordering};
 
 /// Simple counting blocking or non-blocking lock

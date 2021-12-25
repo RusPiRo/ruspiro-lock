@@ -8,6 +8,7 @@
 //! # RWLock
 //!
 
+use core::arch::asm;
 use core::cell::UnsafeCell;
 use core::fmt;
 use core::ops::{Deref, DerefMut};
@@ -48,10 +49,10 @@ impl<T> RWLock<T> {
 }
 
 impl<T: ?Sized> RWLock<T> {
-  /// Try to lock the guarded data for mutual exclusive access. Returns ``None`` if the lock fails
+  /// Try to provide a Writelock for mutual exclusive access. Returns ``None`` if the lock fails
   /// or ``Some(WriteLockGuard)``. The actual data, the [WriteLockGuard] wraps could be conviniently accessed by
   /// dereferencing it.
-  pub fn try_lock(&self) -> Option<WriteLockGuard<T>> {
+  pub fn try_write(&self) -> Option<WriteLockGuard<T>> {
     if self.read_locks.load(Ordering::Relaxed) > 0 {
       // write lock can only be given if there is no concurrent ReadLock already
       // existing
@@ -75,14 +76,14 @@ impl<T: ?Sized> RWLock<T> {
     }
   }
 
-  /// Lock the guarded data for mutual exclusive access. This blocks until the data could be
+  /// Provide a WriteLock for mutual exclusive access. This blocks until the data could be
   /// successfully locked. This also implies that there is no concurrent [ReadLockGuard] existing.
   /// The locked data will be returned as [WriteLockGuard]. Simply derefrencing
   /// this allows access to the contained data value.
   ///
-  pub fn lock(&self) -> WriteLockGuard<T> {
+  pub fn write(&self) -> WriteLockGuard<T> {
     loop {
-      if let Some(write_guard) = self.try_lock() {
+      if let Some(write_guard) = self.try_write() {
         //println!("write lock aquired {:?}", core::any::type_name::<T>());
         return write_guard;
       }
@@ -257,10 +258,10 @@ mod tests {
     let rwlock = Arc::new(RWLock::new(0u32));
     let rwlock_clone = Arc::clone(&rwlock);
     // try_lock and lock will provide a WriteLock
-    let mut data = rwlock.lock();
+    let mut data = rwlock.write();
     *data = 20;
     // if a write lock exists no read lock's could be aquired
-    assert!(rwlock_clone.try_lock().is_none());
+    assert!(rwlock_clone.try_write().is_none());
   }
 
   #[test]
@@ -268,7 +269,7 @@ mod tests {
     let rwlock = Arc::new(RWLock::new(0u32));
     let rwlock_clone = Arc::clone(&rwlock);
     // try_lock and lock will provide a WriteLock
-    let mut data = rwlock.lock();
+    let mut data = rwlock.write();
     *data = 20;
     // if a write lock exists no read lock's could be aquired
     assert!(rwlock_clone.try_read().is_none());
@@ -292,7 +293,7 @@ mod tests {
     // try_lock and lock will provide a WriteLock
     let data = rwlock.read();
     // if a write lock exists no read lock's could be aquired
-    assert!(rwlock_clone.try_lock().is_none());
+    assert!(rwlock_clone.try_write().is_none());
     println!("{}", *data);
   }
 }
