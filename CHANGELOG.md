@@ -1,5 +1,11 @@
 # Changelog
 
+## :peach: v0.4.3
+
+- ### :wrench: Maintenance
+
+  - Adjust the usage of `Send` and `Sync` trait bounds for the `sync` versions of `Mutex` and `RWLock` based on a comment on the rust user forums that the actual usage might not be sound.
+  
 ## :peach: v0.4.2
 
 This is a maintenance release only - migrating the pipeline to github actions.

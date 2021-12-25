@@ -66,12 +66,12 @@ impl Semaphore {
     unsafe {
       // dmb required before allow access to the protected resource, see:
       // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
-      llvm_asm!("dmb sy");
+      asm!("dmb sy");
       // also raise a signal to indicate the semaphore has been changed (this trigger all WFE's to continue
       // processing) but do data syncronisation barrier upfront to ensure any data updates has been finished
-      llvm_asm!(
+      asm!(
         "dsb sy
-                 sev"
+         sev"
       );
     }
   }
@@ -98,7 +98,7 @@ impl Semaphore {
       // semaphore value has likely beeing changed
       #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
       unsafe {
-        llvm_asm!("wfe");
+        asm!("wfe");
       }
     }
   }
@@ -125,7 +125,7 @@ impl Semaphore {
       // http://infocenter.arm.com/help/topic/com.arm.doc.dht0008a/DHT0008A_arm_synchronization_primitives.pdf
       #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
       unsafe {
-        llvm_asm!("dmb sy");
+        asm!("dmb sy");
       }
       Ok(())
     } else {

@@ -6,7 +6,7 @@
  **********************************************************************************************************************/
 #![doc(html_root_url = "https://docs.rs/ruspiro-lock/||VERSION||")]
 #![cfg_attr(not(any(test, doctest)), no_std)]
-#![feature(llvm_asm)]
+#![feature(asm)]
 
 //! # Atomic locks for Raspberry Pi baremetal systems
 //!
@@ -25,7 +25,7 @@
 //! async_locks | allows usage of the `async` lock versions.
 //!
 //!
-//! To share those locking primitives accross the Rasperry Pi cores they should be wrapped in an ``Arc``.
+//! To share those locking primitives accross the Rasperry Pi cores they should be wrapped in an `Arc`.
 //!
 //! # Usage
 //!
