@@ -35,6 +35,7 @@
 //! of the ``Arc``.
 //!
 
+use core::arch::asm;
 use core::cell::UnsafeCell;
 use core::fmt;
 use core::ops::{Deref, DerefMut};

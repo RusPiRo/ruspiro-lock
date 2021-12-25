@@ -96,8 +96,9 @@ fn main() {
     {
         // multiple read locks are possible
         let data = rwlock.read();
-        // if a write lock exists no other write or  read lock's could be aquired
+        // if a read lock exists other read lock's can be aquired, but no write lock
         assert!(rwlock_clone.try_read().is_some());
+        assert!(rwlock_clone.try_lock().is_none());
         println!("{}", *data);
     }
 }

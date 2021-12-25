@@ -12,6 +12,7 @@ extern crate alloc;
 use crate::sync::{Mutex, RWLock, ReadLockGuard, WriteLockGuard};
 use alloc::{collections::BTreeMap, sync::Arc};
 use core::{
+  arch::asm,
   future::Future,
   ops::{Deref, DerefMut},
   pin::Pin,
@@ -43,9 +44,9 @@ impl<T> AsyncRWLock<T> {
 
   /// Locking the data for write access secured by the [AsyncRWLock] will yield a `Future` that must be awaited to
   /// actually acquire the lock.
-  pub async fn lock(&self) -> AsyncWriteLockGuard<'_, T> {
+  pub async fn write(&self) -> AsyncWriteLockGuard<'_, T> {
     // check if we could immediately get the lock
-    if let Some(guard) = self.data.try_lock() {
+    if let Some(guard) = self.data.try_write() {
       // lock immediatly acquired, provide the lock guard as result
       AsyncWriteLockGuard {
         guard,
@@ -65,9 +66,9 @@ impl<T> AsyncRWLock<T> {
     }
   }
 
-  pub fn lock_blocking(&self) -> WriteLockGuard<'_, T> {
+  pub fn write_blocking(&self) -> WriteLockGuard<'_, T> {
     loop {
-      if let Some(write_guard) = self.data.try_lock() {
+      if let Some(write_guard) = self.data.try_write() {
         return write_guard;
       }
       // to save energy and cpu consumption we can wait for an event beeing raised that indicates that the
@@ -215,7 +216,7 @@ impl<'a, T> Future for AsyncWriteLockFuture<'a, T> {
     // handout the `AsyncMutexGuard` with lifetime 'a which bound to the AsyncMutex that created this Future and
     // will always outlive this future and is therefore ok - I guess...
     let this = unsafe { &*(self.get_mut() as *const Self) };
-    if let Some(guard) = this.data.try_lock() {
+    if let Some(guard) = this.data.try_write() {
       // data lock could be acquired
       // provide the AsyncWriteGuard
       Poll::Ready(AsyncWriteLockGuard {

@@ -6,7 +6,6 @@
  **********************************************************************************************************************/
 #![doc(html_root_url = "https://docs.rs/ruspiro-lock/||VERSION||")]
 #![cfg_attr(not(any(test, doctest)), no_std)]
-#![feature(asm)]
 
 //! # Atomic locks for Raspberry Pi baremetal systems
 //!
